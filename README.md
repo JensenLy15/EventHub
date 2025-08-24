@@ -7,9 +7,11 @@
 
 ## Members
 * Yusuf Kaan Yigiter 1 (s4095141)
-* Thomas Phu Thai Ta 2 (s4101740)
-* Kien Hung Ly 3 (s3977367)
-* Student Name 4 (s4107070)
+* Christian Nabati (s4107070)
+* Pee Jay Cabale (s3950166)
+* (thomas)phu thai ta (4101740)
+* Anthony Vo (s3951749)
+* Kien Hung (Jensen) Ly (s3977367)
 
 ## Records
 
