@@ -6,7 +6,7 @@
 ## Group-P01-04
 
 ## Members
-* Yusuf Kaan Yigiter 1 (s4095141)
+* Yusuf Kaan Yigiter (s4095141)
 * Christian Nabati (s4107070)
 * Pee Jay Cabale (s3950166)
 * (thomas)phu thai ta (4101740)
