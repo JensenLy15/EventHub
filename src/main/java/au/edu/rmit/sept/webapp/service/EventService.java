@@ -36,4 +36,18 @@ public class EventService {
     int hour = event.getDateTime().getHour();
     return event.getDateTime().isAfter(now) && hour >= 9 && hour <= 17;
   }
+
+
+  public Event findById(Long eventId)
+  {
+    return eventRepo.findEventById(eventId);
+  }
+
+  public int updateEvent(Event event) {
+    return eventRepo.updateEvent(event);
+  }
+
+  public void deleteEventbyId(long eventId) {
+     eventRepo.deleteEventbyId(eventId);
+  }
 }

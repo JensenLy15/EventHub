@@ -16,6 +16,19 @@
     <!-- Top navigation / page header -->
     <header th:replace="~{components/header :: header}"></header>
 
+    <!--Success message for edit/create event-->
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}" id="success-alert"></div>
+    <!--javascript to add a timer to the message-->
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        const alert = document.getElementById('success-alert');
+        if(alert) {
+          setTimeout(() => {
+            alert.style.display = 'none';
+          }, 3000);
+        }
+      });
+    </script>
     <!-- Page content -->
     <main class="container" th:replace="${content}"></main>
 

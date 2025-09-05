@@ -1,8 +1,9 @@
 <div th:fragment="eventForm">
-    <form th:action="@{/eventForm}" th:object="${event}" method="post">
+    <form th:action="@{${isEdit} ? '/event/edit/' + ${event.eventId} : '/eventForm'}" th:object="${event}" method="post">
+      <input type="hidden" th:field="*{eventId}" />
       <div class="formFields">
         <div class="formTitle formTitle-center">
-          <h1>Create a new event</h1>
+          <h1 th:text="${isEdit} ? 'Edit event' : 'Create a new event'">Create a new event</h1>
         </div>
         <!-- Left column -->
         <div>
@@ -15,7 +16,8 @@
         </div>
         <div>
           <label for="dateTime">Date and Time</label>
-          <input type="datetime-local" id="dateTime" th:field="*{dateTime}" required>
+          <input type="datetime-local" id="dateTime" name="dateTime"
+          th:value="${formattedDateTime}"required>
         </div>
         <div>
           <label for="location">Location</label>
@@ -24,19 +26,20 @@
         <!-- Right column -->
         <div>
           <label for="category">Category</label>
-          <input type="text" id="category" th:field="*{category}" required>
+          <input type="text" id="category" th:field="*{category}" required >
         </div>
         <div>
           <label for="capacity">Capacity</label>
-          <input type="text" id="capacity" th:field="*{capacity}" required>
+          <input type="number" id="capacity" th:field="*{capacity}" required>
         </div>
         <div>
           <label for="price">Price</label>
-          <input type="text" id="price" th:field="*{price}" required>
+          <input type="number" id="price" th:field="*{price}" required step="any">
         </div>
       </div>
       <div class="saveEvent">
-        <button type="submit">Save</button>
+        <a th:href="@{/}"> Cancel </a>
+        <button type="submit" th:text="${isEdit} ? 'Update' : 'Save'">Save</button>
       </div>
       <div class="confirmationMsg">
         <p th:if="${confirmation}" th:text="${confirmation}"></p>

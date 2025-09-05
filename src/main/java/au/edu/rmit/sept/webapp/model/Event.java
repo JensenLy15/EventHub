@@ -23,7 +23,7 @@ public class Event {
     this.name = "";
     this.desc = "";
     this.createdByUserId = 0L;
-    this.dateTime = null;
+    this.dateTime = LocalDateTime.now();
     this.location = "";
     this.category = "";
     this.capacity = 0;

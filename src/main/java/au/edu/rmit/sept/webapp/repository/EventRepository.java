@@ -82,4 +82,37 @@ public class EventRepository {
       return count != null && count > 0;
   }
 
+  public Event findEventById(Long eventId)
+  {
+    String sql = "SELECT * FROM events WHERE event_id = ?";
+    return jdbcTemplate.queryForObject(sql, MAPPER, eventId);
+  }
+
+  public int updateEvent(Event event)
+  {
+    String sql = """
+        UPDATE events 
+        SET name = ?, description = ?, created_by_user_id = ?, date_time = ?, location = ?, category = ?, capacity = ?, category_fk_id = ?, price = ?
+        WHERE event_id = ?
+        """;
+    return jdbcTemplate.update(sql,
+        event.getName(),
+        event.getDescription(),
+        event.getCreatedByUserId(),
+        event.getDateTime(),
+        event.getLocation(),
+        event.getCategory(),
+        event.getCapacity(),
+        event.getCategoryFkId(),
+        event.getPrice(),
+        event.getEventId()
+    );
+  }
+
+  public void deleteEventbyId(Long eventId)
+  {
+    String sql = "DELETE FROM events WHERE event_id = ?";
+    jdbcTemplate.update(sql, eventId);
+  }
+
 }
