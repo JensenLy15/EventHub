@@ -52,7 +52,7 @@
       <div class="cards">
         <!--When there are no events -->
         <div class="empty-events" th:if="${#lists.isEmpty(events)}">
-          No upcoming events
+          <span th:text="${message}">No events found</span>
         </div>
 
         <article

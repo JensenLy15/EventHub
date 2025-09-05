@@ -3,19 +3,8 @@ DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS categories;
 
 CREATE TABLE categories (
-  category_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL
-);
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS rsvp;
-
-CREATE TABLE users (
-  user_id IDENTITY PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  role VARCHAR(50) NOT NULL CHECK (role IN ('student', 'organiser', 'admin')),
-  status VARCHAR(50) NOT NULL CHECK (status IN ('active', 'banned', 'suspended'))
+  category_id IDENTITY PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE events (
@@ -27,27 +16,10 @@ CREATE TABLE events (
   location VARCHAR(255) NOT NULL,
   capacity INT,
   price DECIMAL(10,2),
-  CONSTRAINT fk_event_user FOREIGN KEY (created_by_user_id) REFERENCES users(user_id)
+  category_fk_id BIGINT NOT NULL,
+  CONSTRAINT category_fk_id FOREIGN KEY (category_fk_id) REFERENCES categories(category_id)
 );
 
-CREATE TABLE event_categories (
-    event_id BIGINT NOT NULL,
-    category_id BIGINT NOT NULL,
-    PRIMARY KEY(event_id, category_id),
-    FOREIGN KEY (event_id) REFERENCES events(event_id),
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
-);
 -- Create index for efficient upcoming event queries
 CREATE INDEX idx_event_date_time ON events(date_time);
-
-CREATE TABLE rsvp (
-  rsvp_id IDENTITY PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  event_id BIGINT NOT NULL,
-  status VARCHAR(50) NOT NULL CHECK (status IN ('going', 'not_attend', 'cancelled')),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_rsvp_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-  CONSTRAINT fk_rsvp_event FOREIGN KEY (event_id) REFERENCES events(event_id),
-  CONSTRAINT uc_user_event UNIQUE (user_id, event_id)  -- prevent duplicate RSVP
-);
+CREATE INDEX idx_event_category_fk_id ON events(category_fk_id);

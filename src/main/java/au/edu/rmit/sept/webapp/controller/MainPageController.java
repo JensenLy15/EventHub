@@ -33,11 +33,6 @@ public class MainPageController {
     Long currentUserId = 5L; // placeholder user
     
     // Map to hold RSVP status for each event
-    Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
-    for (Event event : events) {
-        boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
-        rsvpStatusMap.put(event.getEventId(), hasRsvped);
-    }
 
     if (categoryId != null) {
         events = eventService.filterEventsByCategory(categoryId);
@@ -47,12 +42,23 @@ public class MainPageController {
 
     List<EventCategory> categories = categoryService.getAllCategories();
     model.addAttribute("events", events);
-    model.addAttribute("currentUserId", currentUserId);
-    model.addAttribute("rsvpStatusMap", rsvpStatusMap);
 
+    if(events.isEmpty()){
+      model.addAttribute("message", "No events found");
+    }
+
+    Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
+    for (Event event : events) {
+        boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
+        rsvpStatusMap.put(event.getEventId(), hasRsvped);
+    }
+    
     model.addAttribute("categories", categories);
     model.addAttribute("selectedCategoryId", categoryId);
 
+    model.addAttribute("currentUserId", currentUserId);
+    model.addAttribute("rsvpStatusMap", rsvpStatusMap);
+    
     return "index";
   }
 }
