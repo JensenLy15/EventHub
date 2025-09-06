@@ -297,14 +297,13 @@ body {
   margin: 4px 0;
 }
 
-
 /* Event form */
 .form-container {
   max-width: 850px;
   margin: 48px auto;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   padding: 32px 28px 24px;
 }
 
@@ -357,7 +356,7 @@ body {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   transition: background 0.2s;
 }
 
@@ -365,3 +364,27 @@ body {
   background: #002244;
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* space between chips */
+  margin: 0.5rem 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #f1f1f1;
+  border-radius: 9999px; /* makes it pill-shaped */
+  border: 1px solid #ddd;
+  white-space: nowrap;
+  cursor: default;
+  transition: background-color 0.2s ease;
+}
+
+.chip:hover {
+  background-color: #e0e0e0;
+}
