@@ -24,29 +24,28 @@ public class EventRepository {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-
-  private static final RowMapper<Event> MAPPER = (rs, rowNum) -> new Event(
-    rs.getLong("event_id"),
-    rs.getString("name"),
-    rs.getString("description"),
-    rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
-    rs.getTimestamp("date_time").toLocalDateTime(),
-    rs.getString("location"),
-    new ArrayList<>(),
-    rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
-    rs.getBigDecimal("price")
-);
-
+  private static final RowMapper<Event> MAPPER = (ResultSet rs, int rowNumber) -> 
+                                    new Event(rs.getLong("event_id"),
+                                              rs.getString("name"),
+                                              rs.getString("description"),
+                                              rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+                                              rs.getTimestamp("date_time").toLocalDateTime(),
+                                              rs.getString("location"),
+                                              rs.getString("category_name"),
+                                              rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+                                              rs.getObject("category_fk_id") != null ? rs.getLong("category_fk_id") : null,
+                                              rs.getBigDecimal("price")
+  );
 
   public List<Event> findUpcomingEventsSorted () {
     String sql = """
-        SELECT  e.event_id, e.name, e.description, e.created_by_user_id,
-                e.date_time, e.location, e.capacity, e.price, c.name as category_name
-        FROM events e
-        LEFT JOIN event_categories ec ON e.event_id = ec.event_id
-        LEFT JOIN categories c ON ec.category_id = c.category_id
-        WHERE e.date_time >= CURRENT_TIMESTAMP
-        ORDER BY e.date_time ASC
+        SELECT  events.event_id, events.name, events.description, events.created_by_user_id,
+                events.date_time, events.location, categories.name AS category_name, events.capacity, events.category_fk_id,
+                events.price
+        FROM events
+        JOIN categories ON events.category_fk_id = categories.category_id
+        WHERE events.date_time >= CURRENT_TIMESTAMP
+        ORDER BY events.date_time ASC
         """;
     
         return jdbcTemplate.query(sql, rs -> {
@@ -135,31 +134,13 @@ public class EventRepository {
 
   public boolean checkEventExists(Long organiserId, String name, List<String> categoryNames, String location)
   {
-    if(categoryNames == null || categoryNames.isEmpty()) return false;
-
-    String placeholder = categoryNames.stream().map(id -> "?").collect(Collectors.joining(", "));
-
     String sql = """
-                  SELECT COUNT(*) FROM events e 
-                  WHERE e.created_by_user_id = ? AND e.name = ? AND e.location = ? 
-                  AND EXISTS (
-                      SELECT 1
-                      FROM event_categories ec
-                      JOIN categories c ON c.category_id = ec.category_id
-                      WHERE ec.event_id = e.event_id
-                      AND c.name IN ("""
-                          + placeholder + """
-                      )
-                  )                      
-                """;
-
-    List<Object> params = new ArrayList<>();
-    params.add(organiserId);
-    params.add(name);
-    params.add(location);
-    params.addAll(categoryNames);
-
-    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, params.toArray());
+    SELECT COUNT(*) 
+    FROM events e 
+    JOIN categories ON e.category_fk_id = c.category_id
+    WHERE e.created_by_user_id = ? AND e.name = ? AND c.name = ? AND e.location = ?
+    """;
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, organiserId, name, category, location);
 
       return count != null && count > 0;
   }
@@ -207,7 +188,15 @@ public class EventRepository {
 }
   public Event findEventById(Long eventId)
   {
-    String sql = "SELECT * FROM events WHERE event_id = ?";
+    String sql = """
+      SELECT e.event_id, e.name, e.description, e.created_by_user_id,
+               e.date_time, e.location,
+               c.name AS category_name,
+               e.capacity, e.category_fk_id, e.price
+        FROM events e
+        JOIN categories c ON e.category_fk_id = c.category_id
+        WHERE e.event_id = ?
+        """;
     return jdbcTemplate.queryForObject(sql, MAPPER, eventId);
   }
 
@@ -215,13 +204,7 @@ public class EventRepository {
   {
     String sql = """
         UPDATE events 
-        SET name = ?, 
-        description = ?, 
-        created_by_user_id = ?, 
-        date_time = ?, 
-        location = ?, 
-        capacity = ?, 
-        price = ?
+        SET name = ?, description = ?, created_by_user_id = ?, date_time = ?, location = ?, capacity = ?, category_fk_id = ?, price = ?
         WHERE event_id = ?
         """;
     int rows = jdbcTemplate.update(sql,
