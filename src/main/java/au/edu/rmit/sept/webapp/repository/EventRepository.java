@@ -112,20 +112,31 @@ public class EventRepository {
   }
 
 
-  public boolean checkEventExists(Long organiserId, String name, List<Long> categoryFkIds, String location)
+  public boolean checkEventExists(Long organiserId, String name, List<String> categoryNames, String location)
   {
-    if(categoryFkIds == null || categoryFkIds.isEmpty()) return false;
+    if(categoryNames == null || categoryNames.isEmpty()) return false;
 
-    String placeholder = categoryFkIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+    String placeholder = categoryNames.stream().map(id -> "?").collect(Collectors.joining(", "));
 
-    String sql = "SELECT COUNT(*) FROM events" + 
-    " WHERE created_by_user_id = ? AND name = ? AND location = ? AND category_fk_id IN (" + placeholder + ")";
+    String sql = """
+                  SELECT COUNT(*) FROM events e 
+                  WHERE e.created_by_user_id = ? AND e.name = ? AND e.location = ? 
+                  AND EXIST (
+                      SELECT 1
+                      FROM event_categories ec
+                      JOIN categories c ON c.category_id = ec.category_id
+                      WHERE ec.event_id = e.event_id
+                      AND c.name IN ("""
+                          + placeholder + """
+                      )
+                  )                      
+                """;
 
     List<Object> params = new ArrayList<>();
     params.add(organiserId);
     params.add(name);
     params.add(location);
-    params.addAll(categoryFkIds);
+    params.addAll(categoryNames);
 
     Integer count = jdbcTemplate.queryForObject(sql, Integer.class, params.toArray());
 
