@@ -6,8 +6,6 @@ import java.util.List;
 
 public class Event {
   private Long eventId;
-
-  
   private String name;
   private String desc;
   private Long createdByUserId;
@@ -15,10 +13,7 @@ public class Event {
   private String location;
   private Integer capacity;
   private BigDecimal price;
-  private List<Long> categoryFkIds;
   private List<String> categories;
-
-  
 
   public Event() {
     this.eventId = 0L;
@@ -28,14 +23,13 @@ public class Event {
     this.dateTime = null;
     this.location = "";
     this.capacity = 0;
-    this.categoryFkIds = List.of();
     this.categories = List.of();
     this.price = BigDecimal.ZERO;
   }
 
 
   public Event(Long eventId, String name, String desc, Long createdByUserId, LocalDateTime dateTime, 
-                String location, List<String> categories, Integer capacity, List<Long> categoryFkIds, BigDecimal price) {
+                String location, List<String> categories, Integer capacity, BigDecimal price) {
                   this.eventId = eventId;
                   this.name = name;
                   this.desc = desc;
@@ -44,7 +38,6 @@ public class Event {
                   this.location = location;
                   this.categories = categories;
                   this.capacity = capacity;
-                  this.categoryFkIds = categoryFkIds;
                   this.price = price;
                 }
 
@@ -76,9 +69,6 @@ public class Event {
   public void setCapacity(Integer capacity) {
     this.capacity = capacity;
   }
-  public void setCategoryFkId(List<Long> categoryFkId) {
-    this.categoryFkIds = categoryFkId;
-  }
   public void setPrice(BigDecimal price) {
     this.price = price;
   }
@@ -91,6 +81,5 @@ public class Event {
   public String getLocation() { return location; }
   public List<String> getCategory() { return categories; }
   public Integer getCapacity() { return capacity; }
-  public List<Long> getCategoryFkIds() { return categoryFkIds; }
   public java.math.BigDecimal getPrice() { return price; }
 }

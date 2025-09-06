@@ -3,7 +3,9 @@ package au.edu.rmit.sept.webapp.repository;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,30 +25,50 @@ public class EventRepository {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  private static final RowMapper<Event> MAPPER = (ResultSet rs, int rowNumber) -> 
-                                    new Event(rs.getLong("event_id"),
-                                              rs.getString("name"),
-                                              rs.getString("description"),
-                                              rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
-                                              rs.getTimestamp("date_time").toLocalDateTime(),
-                                              rs.getString("location"),
-                                              List.of(rs.getString("category_name")),
-                                              rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
-                                              List.of(rs.getObject("category_fk_id") != null ? rs.getLong("category_fk_id") : null),
-                                              rs.getBigDecimal("price")
-  );
 
   public List<Event> findUpcomingEventsSorted () {
     String sql = """
-        SELECT  event_id, name, description, created_by_user_id,
-                date_time, location, category, capacity, category_fk_id, price
-        FROM events
-        WHERE date_time >= CURRENT_TIMESTAMP
-        ORDER BY date_time ASC
+        SELECT  e.event_id, e.name, e.description, e.created_by_user_id,
+                e.date_time, e.location, e.capacity, e.price
+        FROM events e
+        LEFT JOIN event_categories ec ON e.event_id = ec.event_id
+        LEFT JOIN categories c ON ec.category_id = c.category_id
+        WHERE e.date_time >= CURRENT_TIMESTAMP
+        ORDER BY e.date_time ASC
         """;
     
-    return jdbcTemplate.query(sql, MAPPER);
+        return jdbcTemplate.query(sql, rs -> {
+          Map<Long, Event> events = new LinkedHashMap<>();
+
+          while (rs.next()) {
+              Long eventId = rs.getLong("event_id");
+              Event ev = events.get(eventId);
+
+              if (ev == null) {
+                  ev = new Event(
+                      eventId,
+                      rs.getString("name"),
+                      rs.getString("description"),
+                      rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+                      rs.getTimestamp("date_time").toLocalDateTime(),
+                      rs.getString("location"),
+                      new ArrayList<>(), // categories init
+                      rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+                      rs.getBigDecimal("price")
+                  );
+                  events.put(eventId, ev);
+              }
+
+              String catName = rs.getString("category_name");
+              if (catName != null) {
+                  ev.getCategory().add(catName);
+              }
+          }
+
+          return new ArrayList<>(events.values());
+      });
   }
+
 
 
   public Event createEvent(Event event) {
@@ -84,7 +106,7 @@ public class EventRepository {
 
   public boolean checkEventExists(Long organiserId, String name, List<Long> categoryFkIds, String location)
   {
-     if(categoryFkIds == null || categoryFkIds.isEmpty()) return false;
+    if(categoryFkIds == null || categoryFkIds.isEmpty()) return false;
 
     String placeholder = categoryFkIds.stream().map(id -> "?").collect(Collectors.joining(", "));
 
