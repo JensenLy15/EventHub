@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS event_categories;
+DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS categories;
 
 CREATE TABLE categories (
@@ -14,9 +14,8 @@ CREATE TABLE events (
   created_by_user_id BIGINT,    -- Foreign key to user table (not enforced yet)
   date_time TIMESTAMP NOT NULL,
   location VARCHAR(255) NOT NULL,
-  category VARCHAR(100) NOT NULL,
   capacity INT,
-  price DECIMAL(10,2),
+  price DECIMAL(10,2)
 );
 
 CREATE TABLE event_categories (

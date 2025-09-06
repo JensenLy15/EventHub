@@ -35,7 +35,7 @@ public class EventController {
 
       if(eventService.isValidDateTime(event))
       {
-        if(!eventService.eventExist(event.getCreatedByUserId(),event.getName(),event.getCategoryFkIds(),event.getLocation()))
+        if(!eventService.eventExist(event.getCreatedByUserId(),event.getName(),event.getCategory(),event.getLocation()))
         {
           eventService.saveEvent(event);
           model.addAttribute("confirmation", "Event created successfully!");

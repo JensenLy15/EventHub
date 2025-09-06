@@ -29,7 +29,7 @@ public class EventRepository {
   public List<Event> findUpcomingEventsSorted () {
     String sql = """
         SELECT  e.event_id, e.name, e.description, e.created_by_user_id,
-                e.date_time, e.location, e.capacity, e.price
+                e.date_time, e.location, e.capacity, e.price, c.name as category_name
         FROM events e
         LEFT JOIN event_categories ec ON e.event_id = ec.event_id
         LEFT JOIN categories c ON ec.category_id = c.category_id
@@ -101,10 +101,16 @@ public class EventRepository {
     if (key != null) {
         event.setEventId(key.longValue());
     }
-    if (event.getCategory() != null && !event.getCategory().isEmpty()) {
-    String joinSql = "INSERT INTO event_categories(event_id, category_id) VALUES (?, ?)"; 
-    for(String catName : event.getCategory()){
-      jdbcTemplate.update(joinSql, event.getEventId(), catName);
+
+    // Map category names -> id and insert into event_categories
+    List<String> names = event.getCategory();
+    if (names != null && !names.isEmpty()) {
+      String placeholder = names.stream().map(s -> "?").collect(Collectors.joining(", "));
+      String categoryIdSql = "SELECT category_id FROM categories WHERE name IN (" + placeholder + ")";
+      List<Long> categoryIds = jdbcTemplate.query(categoryIdSql, names.toArray(), (rs, i) -> rs.getLong("category_id"));
+      String joinSql = "INSERT INTO event_categories(event_id, category_id) VALUES (?, ?)"; 
+      for(Long catId : categoryIds){
+        jdbcTemplate.update(joinSql, event.getEventId(), catId);
     }   
   }
 
@@ -121,7 +127,7 @@ public class EventRepository {
     String sql = """
                   SELECT COUNT(*) FROM events e 
                   WHERE e.created_by_user_id = ? AND e.name = ? AND e.location = ? 
-                  AND EXIST (
+                  AND EXISTS (
                       SELECT 1
                       FROM event_categories ec
                       JOIN categories c ON c.category_id = ec.category_id
