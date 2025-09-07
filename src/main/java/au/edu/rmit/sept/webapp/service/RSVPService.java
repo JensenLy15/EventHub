@@ -16,14 +16,14 @@ public class RSVPService {
         this.rsvpRepository = rsvpRepository;
     }
 
-    public boolean toggleRSVP(Long userId, Long eventId) {
+    public boolean submitRSVP(Long userId, Long eventId, String status) {
         if (rsvpRepository.checkUserAlreadyRsvped(userId, eventId)) {
             return rsvpRepository.removeRSVPbyID(userId, eventId); //not used
         }
         RSVP rsvp = new RSVP();
         rsvp.setUserId(userId);
         rsvp.setEventId(eventId);
-        rsvp.setStatus("going");
+        rsvp.setStatus(status);
         rsvp.setCreatedAt(LocalDateTime.now());
         return rsvpRepository.save(rsvp);
     }

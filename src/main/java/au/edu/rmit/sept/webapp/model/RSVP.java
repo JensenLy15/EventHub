@@ -6,14 +6,14 @@ public class RSVP {
   private Long rsvpId;
   private Long userId;   // FK to User
   private Long eventId;  // FK to Event
-  private String status; // Going, Not_Attend, Cancelled
+  private String status; // going, not_attend, cancelled
   private LocalDateTime createdAt;
 
   public RSVP() {
     this.rsvpId = 0L;
     this.userId = 0L;
     this.eventId = 0L;
-    this.status = "Going";
+    this.status = "going";
     this.createdAt = LocalDateTime.now();
   }
 

@@ -1,0 +1,15 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head >
+    <meta charset="utf-8">
+    <title>Event Page</title>
+    <link rel="stylesheet" th:href="@{/styles.css}" />
+</head>
+<body>
+    <header th:replace="~{components/header :: header}"></header>
+    <div class="form-container">
+        <div th:replace="~{components/rsvpForm :: rsvpForm}"></div>
+    </div>
+    <footer th:replace="~{components/footer :: footer}"> </footer>
+</body>
+</html>

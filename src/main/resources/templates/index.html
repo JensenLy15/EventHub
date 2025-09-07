@@ -84,24 +84,16 @@
               </form>
             </div>
 
-              <form th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId}}" method="post" style="display:inline;">
-                <button type="submit"
+            <div>
+              <form th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId}}" method="get">
+                <button 
+                  type="submit"
                   th:classappend="${rsvpStatusMap[event.eventId]} ? 'btn btn-green' : 'btn btn-dark'"
                   th:disabled="${rsvpStatusMap[event.eventId]}"
-                >
-                    <span th:text="${rsvpStatusMap[event.eventId]} ? 'RSVPed' : 'RSVP'"></span>
-                </button>
+                  th:text="${rsvpStatusMap[event.eventId]} ? 'RSVPed' : 'RSVP'"
+                >RSVP</button>
               </form>
-              
-              <!-- Below is a variation of RSVP button where it can undo the RSVP when re-click -->
-              <!-- WILL DECIDE ON THIS LATER -->
-              <!-- <form th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId}}" method="post" style="display:inline;">
-                <button type="submit"
-                  th:classappend="${rsvpStatusMap[event.eventId]} ? 'btn btn-green' : 'btn btn-dark'"
-                >
-                    <span th:text="${rsvpStatusMap[event.eventId]} ? 'RSVPed' : 'RSVP'"></span>
-                </button>
-              </form> -->
+            </div>
 
           </div>
           <div class="card-media">
