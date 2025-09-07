@@ -250,8 +250,14 @@ public class EventRepository {
 
   public void deleteEventbyId(Long eventId)
   {
-    String sql = "DELETE FROM events WHERE event_id = ?";
+
+    //delete the event id and its category ids first in event_categories
+    String sql = "DELETE FROM event_categories WHERE event_id = ?";
     jdbcTemplate.update(sql, eventId);
+
+
+    String deleteEventSql = "DELETE From events WHERE event_id = ?";
+    jdbcTemplate.update(deleteEventSql, eventId);
   }
 
 }
