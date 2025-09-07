@@ -28,15 +28,11 @@
           maxlength="75"
         />
       </div>
-      <div>
-        <label for="dateTime">Date and Time</label>
-        <input
-          type="datetime-local"
-          id="dateTime"
-          th:field="*{dateTime}"
-          required
-        />
-      </div>
+        <div>
+          <label for="dateTime">Date and Time</label>
+          <input type="datetime-local" id="dateTime" name="dateTime"
+          th:value="${formattedDateTime}"required>
+        </div>
       <div>
         <label for="location">Location</label>
         <input
