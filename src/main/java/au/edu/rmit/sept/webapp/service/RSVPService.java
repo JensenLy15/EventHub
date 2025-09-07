@@ -17,7 +17,7 @@ public class RSVPService {
     }
 
     public boolean submitRSVP(Long userId, Long eventId, String status) {
-        if (rsvpRepository.checkUserAlreadyRsvped(userId, eventId)) {
+        if (rsvpRepository.checkUserAlreadyRsvped(userId, eventId)) { //this line will never run....
             return false;
         }
         RSVP rsvp = new RSVP();

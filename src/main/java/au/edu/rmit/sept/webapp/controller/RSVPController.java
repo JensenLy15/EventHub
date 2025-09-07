@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.service.EventService;
@@ -26,9 +27,15 @@ public class RSVPController {
     }
 
     @PostMapping("/{userId}/event/{eventId}/{status}")
-    public String rsvp(@PathVariable Long userId, @PathVariable Long eventId, @PathVariable String status) {
+    public String rsvp(@PathVariable Long userId, @PathVariable Long eventId, @PathVariable String status, RedirectAttributes redirectAttributes) {
         try {
-            rsvpService.submitRSVP(userId, eventId, status);
+            rsvpService.submitRSVP(userId, eventId, status); //create an rsvp
+
+            //get event object for event name for success message. 
+            Event event = eventService.findById(eventId); 
+            String successMsg = "You have successfully RSVP'd (" + status + ") to " + event.getName() + "!";
+            redirectAttributes.addFlashAttribute("successMessage", successMsg);
+
             return "redirect:/";
         } catch (IllegalArgumentException e) {
             return "redirect:/";
