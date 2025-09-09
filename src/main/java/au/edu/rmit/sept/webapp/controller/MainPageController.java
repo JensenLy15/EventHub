@@ -11,18 +11,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.EventCategory;
-import au.edu.rmit.sept.webapp.service.CategoryService;
 import au.edu.rmit.sept.webapp.repository.RsvpRepository;
+import au.edu.rmit.sept.webapp.service.CategoryService;
 import au.edu.rmit.sept.webapp.service.EventService;
 
 @Controller
 public class MainPageController {
   private final EventService eventService;
   private final RsvpRepository rsvpRepository;
+  private  final CategoryService categoryService;
   
-  public MainPageController(EventService eventService, RsvpRepository rsvpRepository) {
+  public MainPageController(EventService eventService, RsvpRepository rsvpRepository, CategoryService categoryService) {
     this.eventService = eventService;
     this.rsvpRepository = rsvpRepository;
+    this.categoryService = categoryService;
   }
 
   @GetMapping("/")
