@@ -1,0 +1,114 @@
+<div th:fragment="rsvpForm">
+  <form id="rsvpForm" th:action="@{'/rsvp/' + ${userId} + '/event/' + ${event.eventId}}" th:object="${event}" method="post">
+    <input type="hidden" th:field="*{eventId}" />
+    <div class="formFields">
+      <div class="formTitle formTitle-center">
+        <h1 th:text="'RSVP Form'"></h1>
+      </div>
+
+      <div>
+        <label for="name">Event Name</label>
+        <input
+          type="text"
+          id="name"
+          th:field="*{name}"
+          required
+          minlength="2"
+          maxlength="30"
+          disabled
+        />
+      </div>
+
+      <div>
+        <label for="desc">Description</label>
+        <input
+          type="text"
+          id="desc"
+          th:field="*{desc}"
+          required
+          minlength="2"
+          maxlength="75"
+          disabled
+        />
+      </div>
+
+      <div>
+          <label for="dateTime">Date and Time</label>
+          <input type="datetime-local" id="dateTime" name="dateTime"
+          th:value="${formattedDateTime}"required disabled>
+      </div>
+
+      <div>
+        <label for="location">Location</label>
+        <input
+          type="text"
+          id="location"
+          th:field="*{location}"
+          required
+          minlength="2"
+          maxlength="40"
+          disabled
+        />
+      </div>
+      <div>
+        <label for="capacity">Capacity</label>
+        <input type="text" id="capacity" th:field="*{capacity}"required disabled/>
+      </div>
+
+      <div>
+        <label for="price">Price</label>
+        <input type="text" id="price" th:field="*{price}" step="any" required disabled/>
+      </div>
+
+      <div>
+        <label for="price">Price</label>
+        <input type="text" id="price" th:field="*{price}" step="any" required disabled/>
+      </div>
+
+      <div>
+        <label for="rsvpStatus">Please choose your RSVP Status</label>
+        <label>
+            <input id= "rsvpStatus" type="radio" name="status" value="going" /> Going
+        </label>
+
+        <label>
+            <input id= "rsvpStatus" type="radio" name="status" value="not_attend" /> Not Attend
+        </label>
+
+        <label>
+            <input id= "rsvpStatus" type="radio" name="status" value="cancelled" /> Cancelled
+        </label>
+      </div>
+
+    </div>
+      <div class="saveEvent">
+        <a th:href="@{/}"> Cancel </a>
+        <button type="submit" th:text="'Submit'">Submit</button>
+      </div>
+    <div class="confirmationMsg">
+      <p th:if="${confirmation}" th:text="${confirmation}"></p>
+    </div>
+  </form>
+
+  <script th:inline="javascript">
+    document.getElementById('rsvpForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // stop default submit
+        const selected = document.querySelector('input[name="status"]:checked');
+        console.log("before if statement")
+        if (selected) {
+            // Build URL dynamically
+            const userId = /*[[${userId}]]*/ '1';
+            const eventId = /*[[${event.eventId}]]*/ '2';
+            this.action = `/rsvp/${userId}/event/${eventId}/${selected.value}`;
+            this.submit();
+        } else {
+            alert('Please select a status');
+        }
+        console.log("after if statement")
+    });
+  </script>
+</div>
+
+
+
+
