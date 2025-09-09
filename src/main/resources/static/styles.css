@@ -118,6 +118,10 @@ body {
   background: #111827;
   color: #fff;
 }
+.btn-green {
+    background-color: green;
+    color: #fff;
+}
 .btn-outline {
   background: transparent;
   border-color: #c7cfdd;

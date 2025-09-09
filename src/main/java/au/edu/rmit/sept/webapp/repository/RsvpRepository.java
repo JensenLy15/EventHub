@@ -1,13 +1,10 @@
 package au.edu.rmit.sept.webapp.repository;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import au.edu.rmit.sept.webapp.model.RSVP;
@@ -27,41 +24,42 @@ public class RsvpRepository {
             rs.getLong("user_id"),
             rs.getLong("event_id"),
             rs.getString("status"),
-            rs.getTimestamp("timestamps").toLocalDateTime()
+            rs.getTimestamp("created_at").toLocalDateTime()
         );
 
-    public List<RSVP> findRsvpsByEvent(Long eventId) {
-        String sql = "SELECT rsvp_id, user_id, event_id, status, timestamps FROM rsvp WHERE event_id = ?";
+    public List<RSVP> findByEventId(Long eventId) {
+        String sql = "SELECT rsvp_id, user_id, event_id, status, created_at FROM rsvp WHERE event_id = ?";
         return jdbcTemplate.query(sql, MAPPER, eventId);
     }
 
-    public RSVP createRsvp(RSVP rsvp) {
-        String sql = """
-            INSERT INTO rsvp (user_id, event_id, status, timestamps)
-            VALUES (?, ?, ?, ?)
-            """;
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"rsvp_id"});
-            ps.setLong(1, rsvp.getUserId());
-            ps.setLong(2, rsvp.getEventId());
-            ps.setString(3, rsvp.getStatus());
-            ps.setObject(4, rsvp.getCreatedAt());
-            return ps;
-        }, keyHolder);
-
-        Number key = keyHolder.getKey();
-        if (key != null) {
-            rsvp.setRsvpId(key.longValue());
-        }
-        return rsvp;
+    public boolean save(RSVP rsvp) {
+        String sql = "INSERT INTO rsvp (user_id, event_id, status, created_at) VALUES (?, ?, ?, ?)";
+        boolean status = jdbcTemplate.update(sql, rsvp.getUserId(), rsvp.getEventId(), rsvp.getStatus(), rsvp.getCreatedAt()) > 0;
+        return status;
     }
 
     public boolean checkUserAlreadyRsvped(Long userId, Long eventId) {
         String sql = "SELECT COUNT(*) FROM rsvp WHERE user_id = ? AND event_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, eventId);
         return count != null && count > 0;
+    }
+
+    public RSVP findByUserIdAndEventId(Long userId, Long eventId) {
+        String sql = "SELECT rsvp_id, user_id, event_id, status, created_at FROM rsvp WHERE user_id = ? AND event_id = ?";
+        List<RSVP> rsvps = jdbcTemplate.query(sql, MAPPER, userId, eventId);
+        return rsvps.isEmpty() ? null : rsvps.get(0);
+    }
+
+    public boolean removeRSVPbyID(Long userId, Long eventId) {
+        String sql = "DELETE FROM rsvp WHERE user_id = ? AND event_id = ?";
+        boolean status = jdbcTemplate.update(sql, userId, eventId) > 0;
+        return status;
+    }
+
+    public boolean removeRSVPbyEvent(Long eventId) {
+        String sql = "DELETE FROM rsvp WHERE event_id = ?";
+        boolean status = jdbcTemplate.update(sql, eventId) > 0;
+        return status;
     }
 }
 
