@@ -49,7 +49,7 @@ FROM events e, categories c
 WHERE e.name='Hack Night' AND c.name='Hackathon';
 
 INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
-VALUES ('Data Science Meetup', 'Lightning talks', 3, DATEADD('DAY', 5, CURRENT_TIMESTAMP), 'Online (Zoom)', 500, 0.00);
+VALUES ('Data Science Meetup', 'Lightning talks', 5, DATEADD('DAY', 5, CURRENT_TIMESTAMP), 'Online (Zoom)', 500, 0.00);
 
 -- Meetup → Meetup
 INSERT INTO event_categories (event_id, category_id)
