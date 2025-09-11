@@ -283,4 +283,44 @@ public class EventRepository {
             return event;
         }, categoryId);
   }
+
+  // get upcoming events created by a given organiser
+  public List<Event> findEventsByOrganiser(Long organiserId) {
+    String sql = """
+        SELECT e.event_id, e.name, e.description, e.created_by_user_id,
+               e.date_time, e.location, e.capacity, e.price,
+               c.name AS category_name
+        FROM events e
+        LEFT JOIN event_categories ec ON e.event_id = ec.event_id
+        LEFT JOIN categories c ON ec.category_id = c.category_id
+        WHERE e.created_by_user_id = ?
+          AND e.date_time >= CURRENT_TIMESTAMP
+        ORDER BY e.date_time ASC
+        """;
+
+        return jdbcTemplate.query(sql, ps -> ps.setLong(1, organiserId), rs -> {
+          Map<Long, Event> map = new LinkedHashMap<>();
+          while (rs.next()) {
+              Long id = rs.getLong("event_id");
+              Event event = map.get(id);
+              if (event == null) {
+                  event = new Event(
+                      id,
+                      rs.getString("name"),
+                      rs.getString("description"),
+                      rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+                      rs.getTimestamp("date_time").toLocalDateTime(),
+                      rs.getString("location"),
+                      new ArrayList<>(), // categories
+                      rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+                      rs.getBigDecimal("price")
+                  );
+                  map.put(id, event);
+              }
+              String cat = rs.getString("category_name");
+              if (cat != null) event.getCategory().add(cat);
+          }
+          return new ArrayList<>(map.values());
+      });
+  }
 }
