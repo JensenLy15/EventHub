@@ -61,5 +61,30 @@ public class RsvpRepository {
         boolean status = jdbcTemplate.update(sql, eventId) > 0;
         return status;
     }
+
+    public static class AttendeeRow {
+      private final String name;
+      private final String email;
+      private final String status;
+      public AttendeeRow(String name, String email, String status) {
+        this.name = name; this.email = email; this.status = status;
+      }
+      public String getName() { return name; }
+      public String getEmail() { return email; }
+      public String getStatus() { return status; }
+    }
+
+    public List<AttendeeRow> findAttendeesByEvent(Long eventId) {
+      String sql = """
+          SELECT u.name, u.email, r.status
+          FROM rsvp r
+          JOIN users u ON u.user_id = r.user_id
+          WHERE r.evemt_id = ?
+          ORDER BY u.name ASC
+          """;
+      return jdbcTemplate.query(sql, ps -> ps.setLong(1, eventId),
+            (rs, i) -> new AttendeeRow(rs.getString("name"), rs.getString("email"), rs.getString("status"))
+            );
+    }
 }
 
