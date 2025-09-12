@@ -142,4 +142,40 @@ public class MainPageControllerIntegrationTest {
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
     }
 
+
+    /**
+     * Scenario where there are no upcoming events
+     *  - events is empty
+     *  - rsvpStatusMap is empty
+     *  - categories still present
+     */
+    @Test
+    void rendersIndex_whenNoUpcomingEvents_graceful() throws Exception {
+        when(eventService.getUpcomingEvents()).thenReturn(List.of());
+        when(categoryService.getAllCategories()).thenReturn(List.of(category(99L, "All")));
+
+        MvcResult res = mvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories", "currentUserId"))
+                .andExpect(model().attribute("selectedCategoryId", (Long) null))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Event> events = (List<Event>) res.getModelAndView().getModel().get("events");
+        assertThat(events).isEmpty();
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvp = (Map<Long, Boolean>) res.getModelAndView().getModel().get("rsvpStatusMap");
+        assertThat(rsvp).isEmpty();
+
+        @SuppressWarnings("unchecked")
+        List<EventCategory> cats = (List<EventCategory>) res.getModelAndView().getModel().get("categories");
+        assertThat(cats).extracting(EventCategory::getCategoryId, EventCategory::getName)
+                .containsExactly(tuple(99L, "All"));
+
+        verify(eventService, times(2)).getUpcomingEvents();
+        verify(categoryService).getAllCategories();
+        verify(rsvpRepository, never()).checkUserAlreadyRsvped(anyLong(), anyLong());
+    }
 }
