@@ -98,5 +98,48 @@ public class MainPageControllerIntegrationTest {
         verifyNoMoreInteractions(eventService, categoryService, rsvpRepository);
     }
 
+    /**
+     * Filtered path (?categoryId=8):
+     * - RSVP map is still built from getUpcomingEvents()
+     * - Displayed events come from filterEventsByCategory(8)
+     * - selectedCategoryId = 8
+     */
+    @Test
+    void rendersIndex_withCategoryFilter_showsFilteredEvents_andRsvpMap() throws Exception {
+        var upcomingForRsvp = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
+        var filtered = List.of(event(2L, "Career Fair"));
+        when(eventService.getUpcomingEvents()).thenReturn(upcomingForRsvp);
+        when(eventService.filterEventsByCategory(8L)).thenReturn(filtered);
+        when(categoryService.getAllCategories()).thenReturn(List.of(category(8L, "Tech")));
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
+
+        MvcResult res = mvc.perform(get("/").param("categoryId", "8"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories"))
+                .andExpect(model().attribute("selectedCategoryId", 8L))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Event> eventsOnPage = (List<Event>) res.getModelAndView().getModel().get("events");
+        assertThat(eventsOnPage).hasSize(1);
+        assertThat(eventsOnPage.get(0).getEventId()).isEqualTo(2L);
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvp = (Map<Long, Boolean>) res.getModelAndView().getModel().get("rsvpStatusMap");
+        assertThat(rsvp).containsEntry(1L, true).containsEntry(2L, false);
+
+        @SuppressWarnings("unchecked")
+        List<EventCategory> cats = (List<EventCategory>) res.getModelAndView().getModel().get("categories");
+        assertThat(cats).extracting(EventCategory::getCategoryId, EventCategory::getName)
+                .containsExactly(tuple(8L, "Tech"));
+
+        verify(eventService).getUpcomingEvents();
+        verify(eventService).filterEventsByCategory(8L);
+        verify(categoryService).getAllCategories();
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
+    }
 
 }
