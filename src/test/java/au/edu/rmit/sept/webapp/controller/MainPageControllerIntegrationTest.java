@@ -20,6 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import static org.hamcrest.Matchers.containsString;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -45,10 +48,12 @@ public class MainPageControllerIntegrationTest {
   @MockBean private CategoryService categoryService;
 
   // ---- helpers ----
-  private static Event event(long id, String name) {
+  private static Event event(long id, String name, String location, LocalDateTime dt) {
     Event e = new Event();
     e.setEventId(id);
     e.setName(name);
+    e.setLocation(location);
+    e.setDateTime(dt);
     return e;
   }
 
@@ -64,7 +69,7 @@ public class MainPageControllerIntegrationTest {
      */
     @Test
     void rendersIndex_withUpcomingEvents_andRsvpMap() throws Exception {
-        var upcoming = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
+        var upcoming = List.of(event(1L, "Tech Talk", "Building 80", LocalDateTime.now().plusDays(1).withSecond(0).withNano(0)), event(2L, "Career Fair", "Building 10", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0)));
         when(eventService.getUpcomingEvents()).thenReturn(upcoming);
         when(categoryService.getAllCategories()).thenReturn(List.of(category(10L, "Tech"), category(20L, "Networking")));
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
@@ -106,8 +111,8 @@ public class MainPageControllerIntegrationTest {
      */
     @Test
     void rendersIndex_withCategoryFilter_showsFilteredEvents_andRsvpMap() throws Exception {
-        var upcomingForRsvp = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
-        var filtered = List.of(event(2L, "Career Fair"));
+        var upcomingForRsvp = List.of(event(1L, "Tech Talk", "Building 80", LocalDateTime.now().plusDays(1).withSecond(0).withNano(0)), event(2L, "Career Fair", "Building 10", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0)));
+        var filtered = List.of(event(2L, "Career Fair", "Building 10", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0)));
         when(eventService.getUpcomingEvents()).thenReturn(upcomingForRsvp);
         when(eventService.filterEventsByCategory(8L)).thenReturn(filtered);
         when(categoryService.getAllCategories()).thenReturn(List.of(category(8L, "Tech")));
