@@ -24,4 +24,11 @@ public class CategoryService {
     {
         categoryRepository.deleteCategoryById(categoryId);
     }
+
+    public List<String> findCategoryNamesByIds(List<Long> categoryIds)
+    {
+        return categoryRepository.findNamesByIds(categoryIds);
+    }
+
+
 }

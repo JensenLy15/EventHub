@@ -37,10 +37,10 @@ public class EventService {
     return eventRepo.checkEventExists(organiserId, name, categoryNames, location);
   }
 
-  public boolean isValidDateTime(Event event) {
-    if (event.getDateTime() == null) return false;
+  public boolean isValidDateTime(LocalDateTime dateTime) {
+    if (dateTime == null) return false;
     LocalDateTime now = LocalDateTime.now();
-    return event.getDateTime().isAfter(now);
+    return dateTime.isAfter(now);
   }
 
 

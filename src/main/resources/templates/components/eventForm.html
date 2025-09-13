@@ -16,6 +16,7 @@
           minlength="2"
           maxlength="30"
         />
+        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error"></span>
       </div>
       <div>
         <label for="desc">Description</label>
@@ -27,11 +28,13 @@
           minlength="2"
           maxlength="75"
         />
+        <span th:if="${#fields.hasErrors('desc')}" th:errors="*{desc}" class="error"></span>
       </div>
         <div>
           <label for="dateTime">Date and Time</label>
           <input type="datetime-local" id="dateTime" name="dateTime"
           th:value="${formattedDateTime}"required>
+          <span th:if="${#fields.hasErrors('dateTime')}" th:errors="*{dateTime}" class="error"></span>
         </div>
       <div>
         <label for="location">Location</label>
@@ -43,6 +46,7 @@
           minlength="2"
           maxlength="40"
         />
+        <span th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="error"></span>
       </div>
       <!-- Right column -->
       <div>
@@ -81,10 +85,12 @@
       <div>
         <label for="capacity">Capacity</label>
         <input type="number" id="capacity" th:field="*{capacity}"required />
+        <span th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}" class="error"></span>
       </div>
       <div>
         <label for="price">Price</label>
         <input type="number" id="price" th:field="*{price}" step="any" required/>
+        <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error"></span>
       </div>
     </div>
       <div class="saveEvent">
