@@ -4,15 +4,44 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class Event {
   private Long eventId;
+
+  @NotBlank(message = "Name is required")
+  @Size(min = 2, max = 30)
   private String name;
+
+  @NotBlank(message = "Description is required")
+  @Size(min = 2, max = 75)
   private String desc;
+
   private Long createdByUserId;
+
+  @Future(message = "Date must be in the future")
   private LocalDateTime dateTime;
+
+  @NotBlank(message = "Location is required")
+  @Size(min = 2, max = 40)
   private String location;
+
+  @NotNull(message = "capacity is required")
+  @Min(value = 0, message = "Capacity must be non-negative")
+  @Max(value = 1000000, message = "Capacity must not exceed 1000000")
   private Integer capacity;
+
+  @NotNull(message = "Price is required")
+  @DecimalMin(value = "0.0", inclusive = true, message = "Price must be non-negative")
   private BigDecimal price;
+  
+  
   private List<String> categories;
 
   public Event() {

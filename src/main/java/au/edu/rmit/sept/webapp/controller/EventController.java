@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import au.edu.rmit.sept.webapp.model.EventCategory;
 import au.edu.rmit.sept.webapp.service.CategoryService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
+import jakarta.validation.Valid;
 
 @Controller
 public class EventController {
@@ -42,17 +44,36 @@ public class EventController {
     }
 
   @PostMapping("/eventForm")
-    public String submitEvent(@ModelAttribute("event") Event event, @RequestParam(name = "categoryIds", required = false) List<Long> categoryIds, Model model, RedirectAttributes redirectAttributes) {
-    event.setCreatedByUserId(5L);
-    if (categoryIds == null) categoryIds = java.util.List.of();
-      // server-side cap (mirrors the JS)
-    if (categoryIds.size() > 3) {
-        model.addAttribute("confirmation", "You can select up to 3 categories only.");
-    } else if (!eventService.isValidDateTime(event)) {
-        model.addAttribute("confirmation", "Enter a valid date!");
-    } else {
-      // fetch names for duplicate check
+  public String submitEvent(@Valid @ModelAttribute("event") Event event, BindingResult result, 
+      @RequestParam(name = "categoryIds", required = false) List<Long> categoryIds, Model model, 
+      RedirectAttributes redirectAttributes) {
+
+      event.setCreatedByUserId(5L);
+
+      if (categoryIds == null) categoryIds = List.of();
+
+      if (result.hasErrors()) {
+          model.addAttribute("categories", categoryService.getAllCategories());
+          model.addAttribute("isEdit", false);
+          return "eventPage";
+      }
+
+      // Server-side category limit
+      if (categoryIds.size() > 3) {
+          model.addAttribute("confirmation", "You can select up to 3 categories only.");
+          model.addAttribute("categories", categoryService.getAllCategories());
+          model.addAttribute("isEdit", false);
+          return "eventPage";
+      }
+
       List<String> categoryNames = categoryService.findCategoryNamesByIds(categoryIds);
+
+      if (!eventService.isValidDateTime(event.getDateTime())) {
+          model.addAttribute("confirmation", "Date must be in the future");
+          model.addAttribute("categories", categoryService.getAllCategories());
+          model.addAttribute("isEdit", false);
+          return "eventPage";
+      }
 
       boolean exists = eventService.eventExist(
           event.getCreatedByUserId(),
@@ -61,24 +82,17 @@ public class EventController {
           event.getLocation()
       );
 
-        if (!exists) {
-            eventService.saveEventWithCategories(event, categoryIds); 
-            redirectAttributes.addFlashAttribute("successMessage", "Event created successfully!");
-            return "redirect:/";
-        } 
-          
-          // re-populate form
-          model.addAttribute("event", event);
+      if (exists) {
+          model.addAttribute("confirmation", "Event already exists!");
           model.addAttribute("categories", categoryService.getAllCategories());
           model.addAttribute("isEdit", false);
-          model.addAttribute("confirmation", "Event already exists!");
           return "eventPage";
       }
-      model.addAttribute("event", event);
-      model.addAttribute("categories", categoryService.getAllCategories());
-      model.addAttribute("isEdit", false);
-      return "eventPage";
-    }
+
+      eventService.saveEventWithCategories(event, categoryIds);
+      redirectAttributes.addFlashAttribute("successMessage", "Event created successfully!");
+      return "redirect:/";
+  }
 
     // Edit form
     @GetMapping("/event/edit/{id}")
@@ -104,7 +118,7 @@ public class EventController {
     public String updateEvent(@PathVariable("id") Long eventId, Event event, RedirectAttributes redirectAttributes, Model model, @RequestParam(value = "categoryIds", required = false) List<Long> categoryIds)
     {
 
-      if(eventService.isValidDateTime(event))
+      if(eventService.isValidDateTime(event.getDateTime()))
       {
         event.setEventId(eventId);
         event.setCreatedByUserId(5L);
