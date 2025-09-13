@@ -42,13 +42,9 @@ public class createEventTest {
             new EventCategory(2L, "Career")
         );
 
-        List<String> categoryNames = categories.stream()
-                                               .map(EventCategory::getName)
-                                               .toList();
+        List<String> categoryNames = categories.stream().map(EventCategory::getName).toList();
 
-        List<Long> categoryIds = categories.stream()
-                                          .map(EventCategory::getCategoryId)
-                                          .toList();
+        List<Long> categoryIds = categories.stream().map(EventCategory::getCategoryId).toList();
 
                                           
         when(categoryService.getAllCategories()).thenReturn(categories);
@@ -59,22 +55,22 @@ public class createEventTest {
         when(eventService.isValidDateTime(fixedDateTime)).thenReturn(true);
 
         when(eventService.eventExist(
-                5L,
-                "Test Event",
-                categoryNames,
-                "Vic"
+            5L,
+            "Test Event",
+            categoryNames,
+            "Vic"
         )).thenReturn(false);
 
         // Simulate form submission
         mvc.perform(post("/eventForm")
-                .param("name", "Test Event")
-                .param("desc", "For testing purposes")
-                .param("createdByUserId", "5")
-                .param("location", "Vic")
-                .param("capacity", "100")
-                .param("price", "0")   
-                .param("dateTime", "2025-09-22T12:00:00")
-                .param("categoryIds", "1", "2") 
+            .param("name", "Test Event")
+            .param("desc", "For testing purposes")
+            .param("createdByUserId", "5")
+            .param("location", "Vic")
+            .param("capacity", "100")
+            .param("price", "0")   
+            .param("dateTime", "2025-09-22T12:00:00")
+            .param("categoryIds", "1", "2") 
         )
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/"))
@@ -88,13 +84,9 @@ public class createEventTest {
             new EventCategory(2L, "Career")
         );
 
-        List<String> categoryNames = categories.stream()
-                                               .map(EventCategory::getName)
-                                               .toList();
+        List<String> categoryNames = categories.stream().map(EventCategory::getName).toList();
 
-        List<Long> categoryIds = categories.stream()
-                                          .map(EventCategory::getCategoryId)
-                                          .toList();
+        List<Long> categoryIds = categories.stream().map(EventCategory::getCategoryId).toList();
 
         when(categoryService.getAllCategories()).thenReturn(categories);
         when(categoryService.findCategoryNamesByIds(categoryIds)).thenReturn(categoryNames);
@@ -105,22 +97,22 @@ public class createEventTest {
         when(eventService.isValidDateTime(fixedDateTime)).thenReturn(false);
 
         when(eventService.eventExist(
-                5L,
-                "Test Event",
-                categoryNames,
-                "Vic"
+            5L,
+            "Test Event",
+            categoryNames,
+            "Vic"
         )).thenReturn(false);
 
         // Simulate form submission
         mvc.perform(post("/eventForm")
-                .param("name", "Test Event")
-                .param("desc", "For testing purposes")
-                .param("createdByUserId", "5")
-                .param("location", "Vic")
-                .param("capacity", "100")
-                .param("price", "0")   
-                .param("dateTime", "2024-09-22T12:00:00")
-                .param("categoryIds", "1", "2") 
+            .param("name", "Test Event")
+            .param("desc", "For testing purposes")
+            .param("createdByUserId", "5")
+            .param("location", "Vic")
+            .param("capacity", "100")
+            .param("price", "0")   
+            .param("dateTime", "2024-09-22T12:00:00")
+            .param("categoryIds", "1", "2") 
         )
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Date must be in the future")));
@@ -133,13 +125,9 @@ public class createEventTest {
             new EventCategory(2L, "Career")
         );
 
-        List<String> categoryNames = categories.stream()
-                                               .map(EventCategory::getName)
-                                               .toList();
+        List<String> categoryNames = categories.stream().map(EventCategory::getName).toList();
 
-        List<Long> categoryIds = categories.stream()
-                                          .map(EventCategory::getCategoryId)
-                                          .toList();
+        List<Long> categoryIds = categories.stream().map(EventCategory::getCategoryId).toList();
 
         when(categoryService.getAllCategories()).thenReturn(categories);
         when(categoryService.findCategoryNamesByIds(categoryIds)).thenReturn(categoryNames);
@@ -155,15 +143,15 @@ public class createEventTest {
                 "Vic"
         )).thenReturn(false);                
 
-                mvc.perform(post("/eventForm")
-                .param("name", "")
-                .param("desc", "For testing purposes")
-                .param("createdByUserId", "5")
-                .param("location", "Vic")
-                .param("capacity", "100")
-                .param("price", "0")   
-                .param("dateTime", "2024-09-22T12:00:00")
-                .param("categoryIds", "1", "2") 
+        mvc.perform(post("/eventForm")
+            .param("name", "")
+            .param("desc", "For testing purposes")
+            .param("createdByUserId", "5")
+            .param("location", "Vic")
+            .param("capacity", "100")
+            .param("price", "0")   
+            .param("dateTime", "2024-09-22T12:00:00")
+            .param("categoryIds", "1", "2") 
         )
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Name is required")));
