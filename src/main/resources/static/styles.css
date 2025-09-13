@@ -376,11 +376,24 @@ body {
   margin: 16px auto;
   max-width: 700px;
   border-radius: 8px;
-  background: #e6f9ed;
-  color: #17633a;
   font-weight: 600;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.alert-success {
+  background: #e6f9ed; 
+  color: #17633a;
+}
+
+.alert-warning {
+  background: #fff4e5; 
+  color: #663c00;
+}
+
+.alert-danger {
+  background: #fdecea; 
+  color: #9a1c1c;
 }
 
 .chip-row {

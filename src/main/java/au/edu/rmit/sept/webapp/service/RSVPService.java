@@ -18,7 +18,7 @@ public class RSVPService {
     }
 
     public boolean submitRSVP(Long userId, Long eventId, String status) {
-        if (rsvpRepository.checkUserAlreadyRsvped(userId, eventId)) { //this line will never run....
+        if (rsvpRepository.checkUserAlreadyRsvped(userId, eventId)) { //this line will rarely run....
             return false;
         }
         RSVP rsvp = new RSVP();
@@ -27,6 +27,10 @@ public class RSVPService {
         rsvp.setStatus(status);
         rsvp.setCreatedAt(LocalDateTime.now());
         return rsvpRepository.save(rsvp);
+    }
+
+    public RSVP getRSVP(Long userId, Long eventId) {
+        return rsvpRepository.findByUserIdAndEventId(userId, eventId); 
     }
 
     public boolean deleteRsvp(Long userId, Long eventId) {

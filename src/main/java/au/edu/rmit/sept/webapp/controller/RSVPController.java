@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import au.edu.rmit.sept.webapp.model.Event;
+import au.edu.rmit.sept.webapp.model.RSVP;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
 
@@ -29,13 +30,19 @@ public class RSVPController {
     @PostMapping("/{userId}/event/{eventId}/{status}")
     public String rsvp(@PathVariable Long userId, @PathVariable Long eventId, @PathVariable String status, RedirectAttributes redirectAttributes) {
         try {
-            rsvpService.submitRSVP(userId, eventId, status); //create an rsvp
-
-            //get event object for event name for success message. 
-            Event event = eventService.findById(eventId); 
-            String successMsg = "You have successfully RSVP'd (" + status + ") to " + event.getName() + "!";
-            redirectAttributes.addFlashAttribute("successMessage", successMsg);
-
+            if (rsvpService.submitRSVP(userId, eventId, status)) { //create an rsvp
+                //get event object for event name for success message. 
+                Event event = eventService.findById(eventId); 
+                String successMsg = "You have successfully RSVP'd (" + status + ") to " + event.getName() + "!";
+                redirectAttributes.addFlashAttribute("successMessage", successMsg);
+            }
+            else {//duplicate rsvp
+                //get event object for event name for error message. 
+                Event event = eventService.findById(eventId); 
+                RSVP rsvp = rsvpService.getRSVP(userId, eventId);
+                String errorMsg = "Duplicate RSVP found: \"" + rsvp.getStatus() + "\" to " + event.getName() + "!";
+                redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
+            }
             return "redirect:/";
         } catch (IllegalArgumentException e) {
             return "redirect:/";

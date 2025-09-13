@@ -16,12 +16,14 @@
     <!-- Top navigation / page header -->
     <header th:replace="~{components/header :: header}"></header>
 
-    <!--Success message for edit/create event-->
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}" id="success-alert"></div>
+    <!--Success message for rsvp/edit/create event-->
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}" id="alert"></div>
+    <!--Error message for rsvp/edit/create event-->
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" id="alert"></div>
     <!--javascript to add a timer to the message-->
     <script>
       window.addEventListener('DOMContentLoaded', function() {
-        const alert = document.getElementById('success-alert');
+        const alert = document.getElementById('alert');
         if(alert) {
           setTimeout(() => {
             alert.style.display = 'none';
