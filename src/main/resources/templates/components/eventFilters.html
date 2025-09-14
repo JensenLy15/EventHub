@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="filterForm">
+        <form th:action="@{/}" method="get">
+            <label for="categorySelect">Filter by Category:</label>
+            <select id="categorySelect" name="categoryId">
+                <option value="" th:text="'All Categories'" th:selected="${selectedCategoryId == null}"></option>
+                <option th:each="cat : ${categories}" 
+                        th:value="${cat.categoryId}" 
+                        th:text="${cat.name}" 
+                        th:selected="${cat.categoryId == selectedCategoryId}">
+                </option>
+            </select>
+            <button type="submit" class="btn btn-dark">Filter</button>
+        </form>
+    </div>
+</body>
+</html>

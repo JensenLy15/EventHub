@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:replace="~{components/layout :: layout(~{::title}, ~{::section})}"
+>
+  <head>
+    <title>Organizer Dashboard</title>
+  </head>
+  <body>
+    <section class="page">
+      <h1 class="section-title">Your upcoming events</h1>
+
+      <div th:if="${#lists.isEmpty(events)}" class="empty-events">
+        You haven’t created any upcoming events yet.
+      </div>
+
+      <div class="cards" th:if="${!#lists.isEmpty(events)}">
+        <article class="card" th:each="ev : ${events}">
+          <div class="card-body">
+            <h3 class="card-title" th:text="${ev.name}">Event name</h3>
+            <p
+              class="muted"
+              th:text="${#temporals.format(ev.dateTime, 'EEE, d MMM yyyy HH:mm')}"
+            >
+              Date
+            </p>
+            <p class="muted" th:text="${ev.location}">Location</p>
+
+            <!-- Categories chips (optional) -->
+            <div class="chip-row" th:if="${ev.category != null}">
+              <span class="chip" th:each="c : ${ev.category}" th:text="${c}"
+                >Category</span
+              >
+            </div>
+
+            <div class="card-actions">
+              <a
+                class="btn btn-dark"
+                th:href="@{|/organiser/events/${ev.eventId}/rsvps|}"
+              >
+                View RSVPs
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </body>
+</html>

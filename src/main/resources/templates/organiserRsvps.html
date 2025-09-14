@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:replace="~{components/layout :: layout(~{::title}, ~{::section})}"
+>
+  <head>
+    <title>Event RSVPs</title>
+  </head>
+  <body>
+    <section class="page">
+      <a class="btn btn-light" th:href="@{/organiser/dashboard}"
+        >← Back to dashboard</a
+      >
+
+      <h1 class="section-title">
+        RSVPs for <span th:text="${event.name}">Event</span>
+      </h1>
+      <p class="muted">
+        <span
+          th:text="${#temporals.format(event.dateTime, 'EEE, d MMM yyyy HH:mm')}"
+          >Date</span
+        >
+        ·
+        <span th:text="${event.location}">Location</span>
+      </p>
+
+      <div th:if="${#lists.isEmpty(attendees)}" class="empty-events">
+        No RSVPs yet.
+      </div>
+
+      <div th:if="${!#lists.isEmpty(attendees)}" class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Attendee</th>
+              <th>Email</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="a : ${attendees}">
+              <td th:text="${a.name}">Name</td>
+              <td th:text="${a.email}">email@example.com</td>
+              <td th:text="${a.status}">going</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </body>
+</html>
