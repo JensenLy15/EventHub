@@ -129,6 +129,6 @@ public class organiserDashboardViewAcceptanceTest {
             .andExpect(status().isOk())
             .andExpect(view().name("organiserDashboard"))
             .andExpect(content().string(containsString("Event not found or not hosted by you.")))
-            .andExpect(content().string(containsString("My Event"))); // dashboard reloaded
+            .andExpect(content().string(containsString("Test Event"))); // dashboard reloaded
     }
 }

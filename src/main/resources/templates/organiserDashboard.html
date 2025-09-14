@@ -11,6 +11,11 @@
     <section class="page">
       <h1 class="section-title">Your upcoming events</h1>
 
+      <!-- Error message block -->
+      <div th:if="${error}" class="alert alert-error" th:text="${error}">
+        Event not found or not hosted by you.
+      </div>
+
       <div th:if="${#lists.isEmpty(events)}" class="empty-events">
         You haven’t created any upcoming events yet.
       </div>
