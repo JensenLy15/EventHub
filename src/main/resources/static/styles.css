@@ -35,7 +35,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0 1000px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
   gap: 16px;
 }
@@ -47,6 +47,16 @@ body {
 }
 .logo {
   font-weight: 700;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 8px;
+  filter: invert(16%) sepia(89%) saturate(3063%) hue-rotate(50deg) brightness(95%) contrast(101%);
 }
 .search {
   display: flex;
@@ -76,6 +86,7 @@ body {
   margin-left: 16px;
   color: var(--brand);
   text-decoration: none;
+  margin-right: 20px;
 }
 
 /* Hero */
@@ -314,6 +325,7 @@ body {
   border-top: 1px solid var(--line);
   padding: 16px 0;
   margin-top: 18px;
+  margin-left: 20px;
 }
 .social span {
   margin-right: 10px;
@@ -321,6 +333,7 @@ body {
 .footer-links {
   display: flex;
   gap: 24px;
+  margin-right: 20px;
 }
 .footer-links strong {
   display: block;
