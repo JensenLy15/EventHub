@@ -47,6 +47,16 @@ public class RSVPController {
         }
     }
 
+    @PostMapping("/{userId}/event/{eventId}/delete")
+    public String deleteRSVP(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
+        try {
+            rsvpService.deleteRsvp(userId, eventId);
+            return "redirect:/";
+        } catch (IllegalArgumentException e) {
+            return "redirect:/";
+        }
+    }
+
     @GetMapping("/{userId}/event/{eventId}")
     public String rsvpConfirmPage(@PathVariable Long userId,
                                 @PathVariable Long eventId,
