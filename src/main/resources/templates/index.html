@@ -116,6 +116,17 @@
                   th:text="${rsvpStatusMap[event.eventId]} ? 'RSVPed' : 'RSVP'"
                 >RSVP</button>
               </form>
+              <div th:if = "${rsvpStatusMap[event.eventId]}">
+                <form th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId} + '/delete'}" method="post"
+                      onsubmit="return confirm('Are you sure you want to DELETE this RSVP ?');">
+                  <button 
+                    type="submit"
+                    style="width:100%"
+                    class="btn submit-button"
+                    th:text="'Cancel this RSVP'"
+                  >Cancel this RSVP</button>
+                </form>
+              </div>
 
         </article>
       </div>
