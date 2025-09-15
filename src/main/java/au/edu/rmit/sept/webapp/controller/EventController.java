@@ -115,25 +115,25 @@ public class EventController {
     }
 
     @PostMapping("/event/edit/{id}")
-    public String updateEvent(@PathVariable("id") Long eventId, Event event, RedirectAttributes redirectAttributes, Model model, @RequestParam(value = "categoryIds", required = false) List<Long> categoryIds)
+    public String updateEvent(
+        @PathVariable("id") Long eventId,
+        @Valid @ModelAttribute("event") Event event,
+        BindingResult bindingResult,
+        RedirectAttributes redirectAttributes,
+        Model model,
+        @RequestParam(value = "categoryIds", required = false) List<Long> categoryIds) 
     {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("isEdit", true);
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "eventPage";
+        }
 
-      if(eventService.isValidDateTime(event.getDateTime()))
-      {
         event.setEventId(eventId);
         event.setCreatedByUserId(5L);
-        event.setDateTime(event.getDateTime());
         eventService.updateEvent(event, categoryIds);
-        model.addAttribute("isEdit", true);
         redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
         return "redirect:/";
-      }
-      else {
-        model.addAttribute("confirmation", "Enter a valid date!");
-        model.addAttribute("event", event);
-        model.addAttribute("isEdit", true);
-        return "eventPage";
-      }
     }
 
     @PostMapping("/event/delete/{id}")
