@@ -41,6 +41,7 @@ public class Event {
   @DecimalMin(value = "0.0", inclusive = true, message = "Price must be non-negative")
   private BigDecimal price;
   
+  private String imageUrl;
   
   private List<String> categories;
 
@@ -54,6 +55,7 @@ public class Event {
     this.capacity = 0;
     this.categories = List.of();
     this.price = BigDecimal.ZERO;
+    this.imageUrl = "/meetup.jpg";
   }
 
 
@@ -68,9 +70,12 @@ public class Event {
                   this.categories = categories;
                   this.capacity = capacity;
                   this.price = price;
+                  this.imageUrl = "/meetup.jpg";
                 }
 
-
+  public void setImageUrl(String imageUrl){
+    this.imageUrl = imageUrl;
+  }
   public void setEventId(Long eventId) {
     this.eventId = eventId;
   }
@@ -102,6 +107,7 @@ public class Event {
     this.price = price;
   }
   
+  public String getImageUrl() { return imageUrl; } 
   public Long getEventId() { return eventId; }
   public String getName() { return name; }
   public String getDescription() { return desc; }

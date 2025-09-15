@@ -68,6 +68,40 @@ public class EventController {
 
       List<String> categoryNames = categoryService.findCategoryNamesByIds(categoryIds);
 
+      if(!categoryNames.isEmpty()){
+        String categoryName = categoryNames.get((0));
+        System.out.println(categoryName);
+        String imageUrl;
+
+        switch (categoryName) {
+          case "Career": 
+            imageUrl = "/career-event.jpeg";
+            break;
+
+          case "Social":
+            imageUrl = "/meetup.jpg";
+            break;
+          
+          case "Hackathon":
+            imageUrl = "/hackathon-meetup.jpeg";
+            break;
+          
+          case "Meetup":
+            imageUrl = "/meetup.jpg";
+            break;
+            
+          default:
+            imageUrl = "/meetup.jpg";
+            break;
+        }
+        System.out.println(imageUrl);
+        event.setImageUrl(imageUrl);
+        System.out.println(event.getImageUrl());
+        
+      } else {
+        event.setImageUrl("/meetup.jpg");
+      }
+
       if (!eventService.isValidDateTime(event.getDateTime())) {
           model.addAttribute("confirmation", "Date must be in the future");
           model.addAttribute("categories", categoryService.getAllCategories());

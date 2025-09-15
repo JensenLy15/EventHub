@@ -3,16 +3,24 @@
 <body>
     <div th:fragment="filterForm">
         <form th:action="@{/}" method="get">
-            <label for="categorySelect">Filter by Category:</label>
-            <select id="categorySelect" name="categoryId">
-                <option value="" th:text="'All Categories'" th:selected="${selectedCategoryId == null}"></option>
-                <option th:each="cat : ${categories}" 
-                        th:value="${cat.categoryId}" 
-                        th:text="${cat.name}" 
-                        th:selected="${cat.categoryId == selectedCategoryId}">
-                </option>
-            </select>
-            <button type="submit" class="btn btn-dark">Filter</button>
+            
+            
+            <button th:each="cat : ${categories}"
+                    type="submit"
+                    name="categoryId"
+                    th:value="${cat.categoryId}"
+                    th:text="${cat.name}"
+                    th:classappend="${cat.categoryId == selectedCategoryId} ? 'btn-dark' : 'btn-outline-dark'"
+                    class="btn">
+            </button>
+
+            <button type="submit"
+                    name="categoryId"
+                    value=""
+                    th:classappend="${selectedCategoryId == null} ? 'btn-dark' : 'btn-outline-dark'"
+                    class="btn">
+                None
+            </button>
         </form>
     </div>
 </body>
