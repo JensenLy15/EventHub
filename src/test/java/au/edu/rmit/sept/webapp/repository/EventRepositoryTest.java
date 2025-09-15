@@ -116,4 +116,18 @@ class EventRepositoryTest {
     // Verify entries in joined table
     assertEquals(2, countJoinRows(created.getEventId()));
   }
+
+  @Test
+  void checkEventExist_ifSameUserNameLocationCategoriesMatched() {
+    boolean eventExist = repo.checkEventExists(5L, "Cloud Career Panel", List.of("Career", "Hackathon"), jdbc.queryForObject("SELECT location FROM events WHERE name = 'Cloud Career Panel'", String.class));
+    assertTrue(eventExist);
+  }
+
+  @Test
+  void checkEventExist_ifNoMatchedLocationOrName() {
+    boolean notMatchName = repo.checkEventExists(5L, "Test Event", List.of("Career"), "Building 80");
+    assertFalse(notMatchName);
+    boolean notMatchLocation = repo.checkEventExists(5L, "Cloud Career Panel", List.of("Career"), "Test Location");
+    assertFalse(notMatchLocation);
+  }
 }
