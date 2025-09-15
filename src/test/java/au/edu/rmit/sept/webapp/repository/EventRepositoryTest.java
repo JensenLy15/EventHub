@@ -3,6 +3,7 @@ package au.edu.rmit.sept.webapp.repository;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -99,5 +100,20 @@ class EventRepositoryTest {
     
     // Categories Aggregated
     assertTrue(events.stream().anyMatch(e -> e.getCategory().contains("Career") || e.getCategory().contains("Hackathon") || e.getCategory().contains("Meetup")));
+  }
+
+  @Test
+  void createEvent_and_LinksCategories() {
+    Event e = baseEvent("New Ted Talk", "Building 80", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0));
+    e.setCategory(new java.util.ArrayList<>());
+    e.getCategory().add("Career");
+    e.getCategory().add("Hackathon");
+
+    Event created = repo.createEvent(e);
+    assertNotNull(created.getEventId());
+    assertEquals("New Ted Talk", created.getName());
+
+    // Verify entries in joined table
+    assertEquals(2, countJoinRows(created.getEventId()));
   }
 }
