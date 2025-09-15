@@ -51,6 +51,9 @@ public class RSVPController {
     public String deleteRSVP(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         try {
             rsvpService.deleteRsvp(userId, eventId);
+            Event event = eventService.findById(eventId);
+            String successMsg = "You have successfully DELETED the RSVP to " + event.getName() + "!";
+            redirectAttributes.addFlashAttribute("successMessage", successMsg);
             return "redirect:/";
         } catch (IllegalArgumentException e) {
             return "redirect:/";
