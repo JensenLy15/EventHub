@@ -145,11 +145,13 @@ body {
 .muted {
   color: var(--muted);
 }
-.hero-media .media-placeholder {
+.hero-media .media-placeholder .hero-image {
   background: #e8ecf4;
-  border: 1px dashed #b9c2d3;
+  /* border: 1px dashed #b9c2d3; */
   border-radius: 16px;
-  height: 220px;
+  height: 250px;
+  width:fit-content;
+  max-width: full;
   display: flex;
   align-items: center;
   justify-content: center;
