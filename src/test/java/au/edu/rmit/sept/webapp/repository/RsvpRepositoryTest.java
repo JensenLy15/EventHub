@@ -99,4 +99,30 @@ public class RsvpRepositoryTest {
     assertTrue(rsvpList.stream().anyMatch(r -> r.getUserId().equals(user1)));
     assertTrue(rsvpList.stream().anyMatch(r -> r.getUserId().equals(user2)));
   }
+
+  @Test
+  void removeRSVPbyID_deletesOneRow() {
+    long user = userIdByEmail("dummy3@example.com");
+    long event = eventIdByName("Data Science Meetup");
+
+    repo.save(new RSVP(null, user, event, LocalDateTime.now().withNano(0)));
+    assertTrue(repo.checkUserAlreadyRsvped(user, event));
+
+    assertTrue(repo.removeRSVPbyID(user, event));
+    assertFalse(repo.checkUserAlreadyRsvped(user, event));
+}
+
+  @Test
+  void removeRSVPbyEvent_deletesAllForThatEvent() {
+      long e = eventIdByName("Hack Night");
+      long u1 = userIdByEmail("dummy@example.com");
+      long u2 = userIdByEmail("dummy2@example.com");
+
+      repo.save(new RSVP(null, u1, e, LocalDateTime.now().withNano(0)));
+      repo.save(new RSVP(null, u2, e, LocalDateTime.now().withNano(0)));
+      assertEquals(2, rsvpCount(e));
+
+      assertTrue(repo.removeRSVPbyEvent(e));
+      assertEquals(0, rsvpCount(e));
+  }
 }
