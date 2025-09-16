@@ -104,4 +104,31 @@ public class CategoryRepositoryTest {
       assertTrue(repo.findNamesByIds(List.of()).isEmpty());
         assertTrue(repo.findNamesByIds(null).isEmpty());
     }
+
+  @Test
+  void deleteCategory_byId_andUnlinkWithAssociatedEvents() {
+    // Precondition: category exists and already linked to event(s)
+    Long careerCategoryId = categoryId("Career");
+    assertNotNull(careerCategoryId);
+
+    int beforeCategoryCount = countCategories();
+    int beforeAssociatedEventCount = countEventCategoryLinksForCategory(careerCategoryId);
+    assertTrue(beforeAssociatedEventCount >=1, "Expected at least one event associated with this category");
+
+    //Delete
+    repo.deleteCategoryById(careerCategoryId);
+
+    //Assert category is gone
+    Integer categoryExists = jdbc.queryForObject("SELECT COUNT(*) FROM categories WHERE category_id = ?", Integer.class, careerCategoryId);
+    assertNotNull(categoryExists);
+    assertEquals(0, categoryExists.intValue());
+
+    //Assert associated link is gone
+    int afterAssociatedEventCount = countEventCategoryLinksForCategory(careerCategoryId);
+    assertEquals(0, afterAssociatedEventCount);
+
+    //Assert count decrease
+    int afterCategoryCount = countCategories();
+    assertEquals(beforeCategoryCount - 1, afterCategoryCount);
+  }
 }
