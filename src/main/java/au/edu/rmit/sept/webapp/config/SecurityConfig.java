@@ -18,9 +18,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        //so basically this is where we configure the security for our web app where we only 
+        //allow certain pages to be accessed by anyone and other pages to be accessed only by logged in users
         http
             .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/", "/home", "/styles.css", "/favicon.svg", "/static/**", "/error", "/h2-console/**").permitAll() // Public pages
+                // .requestMatchers("/", "/home", "/styles.css", "/favicon.svg", "/static/**", "/error", "/h2-console/**", "/*.jpg", "/*.jpeg").permitAll() // Public pages
+                .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/*.css", "/*.js", "/*.jpg", "/*.jpeg", "/*.png", "/*.gif", "/*.ico",  "/*.svg", "/static/**", "/error", "/h2-console/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+
                 .requestMatchers("/eventPage/**").authenticated() // Protected pages
                 .requestMatchers("/organiser/**").authenticated()
                 .anyRequest().authenticated()
@@ -34,7 +39,10 @@ public class SecurityConfig {
             )
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/h2-console/**") // Needed for H2 console
-            );
+            )
+
+              .headers(headers -> headers.frameOptions().sameOrigin()  // Add this line
+        );
 
         return http.build();
     }
