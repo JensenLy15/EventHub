@@ -16,8 +16,16 @@
           </form>
         </div>
         <div class="topbar-right">
-          <a href="#" class="link">Sign up</a>
-          <a href="#" class="link">Log in</a>
+          <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/register}" class="link">Sign up</a>
+            <a th:href="@{/login}" class="link">Log in</a>
+          </div>
+          <div sec:authorize="isAuthenticated()">
+            <span class="user-welcome" sec:authentication="name">Username</span>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+              <button type="submit" class="link" style="border:none;background:none;cursor:pointer;">Logout</button>
+            </form>
+          </div>
         </div>
       </div>
     </header>
