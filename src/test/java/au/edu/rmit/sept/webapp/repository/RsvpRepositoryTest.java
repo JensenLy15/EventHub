@@ -83,4 +83,20 @@ public class RsvpRepositoryTest {
     assertEquals(user, retrieved.getUserId());
     assertEquals(event, retrieved.getEventId());
   }
+
+  @Test
+  void findRsvp_byEventId() {
+    long user1 = userIdByEmail("dummy@example.com");
+    long user2 = userIdByEmail("dummy2@example.com");
+    long event = eventIdByName("Cloud Career Panel");
+
+    assertEquals(0, rsvpCount(event));
+    repo.save(new RSVP(null, user1, event, LocalDateTime.now().withNano(0)));
+    repo.save(new RSVP(null, user2, event, LocalDateTime.now().withNano(0)));
+
+    List<RSVP> rsvpList = repo.findByEventId(event);
+    assertEquals(2, rsvpList.size());
+    assertTrue(rsvpList.stream().anyMatch(r -> r.getUserId().equals(user1)));
+    assertTrue(rsvpList.stream().anyMatch(r -> r.getUserId().equals(user2)));
+  }
 }
