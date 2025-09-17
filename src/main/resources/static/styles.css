@@ -56,10 +56,11 @@ body {
   height: 24px;
   vertical-align: middle;
   margin-right: 8px;
-  filter: invert(16%) sepia(89%) saturate(3063%) hue-rotate(50deg) brightness(95%) contrast(101%);
+  filter: invert(16%) sepia(89%) saturate(3063%) hue-rotate(50deg)
+    brightness(95%) contrast(101%);
 }
 
-.filter-form{
+.filter-form {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -128,6 +129,15 @@ body {
   cursor: pointer;
   box-shadow: var(--shadow);
 }
+.btn-dark,
+.btn-blue,
+.btn-danger {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
 .btn-light {
   background: #fff;
   border-color: var(--line);
@@ -138,14 +148,39 @@ body {
   color: #fff;
 }
 .btn-green {
-    background-color: green;
-    color: #fff;
+  background-color: green;
+  color: #fff;
 }
 .btn-outline {
   background: transparent;
   border-color: #c7cfdd;
   color: var(--brand);
 }
+
+.btn-blue {
+  background: #2563eb; /* indigo-500 */
+  color: #fff;
+}
+.btn-blue:hover {
+  background: #1e40af; /* indigo-800 */
+}
+
+.btn-danger {
+  background: #ef4444; /* red-500 */
+  color: #fff;
+}
+.btn-danger:hover {
+  background: #b91c1c; /* red-700 */
+}
+
+/* keep buttons aligned nicely when a form sits beside links */
+.inline {
+  display: inline;
+}
+.card-actions .btn {
+  margin-right: 8px;
+}
+
 .center {
   text-align: center;
   margin: 16px 0 32px;
@@ -158,7 +193,7 @@ body {
   /* border: 1px dashed #b9c2d3; */
   border-radius: 16px;
   height: 250px;
-  width:fit-content;
+  width: fit-content;
   max-width: full;
   display: flex;
   align-items: center;
@@ -262,7 +297,6 @@ body {
   margin-top: 5px;
 }
 
-
 .img-placeholder {
   height: 200px;
   border-radius: 8px;
@@ -283,12 +317,12 @@ body {
   display: block;
 }
 
-.event-card-image{
+.event-card-image {
   height: 200px !important;
   opacity: 100%;
 }
 
-.submit-button{
+.submit-button {
   margin-top: 10px;
 }
 
@@ -428,7 +462,8 @@ body {
   margin-top: 18px;
 }
 
-.saveEvent a, .saveEvent button {
+.saveEvent a,
+.saveEvent button {
   text-decoration: none;
   background: #003366;
   color: #fff;
@@ -440,13 +475,13 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   transition: background 0.2s;
-  margin-right: 10px ;
+  margin-right: 10px;
 }
 
 .saveEvent button:hover {
   background: #002244;
 }
-.rsvp-form{
+.rsvp-form {
   margin-top: 5px;
   margin-bottom: 5px;
 }
@@ -458,21 +493,21 @@ body {
   border-radius: 8px;
   font-weight: 600;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 .alert-success {
-  background: #e6f9ed; 
+  background: #e6f9ed;
   color: #17633a;
 }
 
 .alert-warning {
-  background: #fff4e5; 
+  background: #fff4e5;
   color: #663c00;
 }
 
 .alert-danger {
-  background: #fdecea; 
+  background: #fdecea;
   color: #9a1c1c;
 }
 
@@ -501,4 +536,20 @@ body {
 
 .chip:hover {
   background-color: #e0e0e0;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chip-row-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip-row-inline .chip {
+  margin: 0;
 }
