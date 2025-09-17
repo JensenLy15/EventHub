@@ -9,20 +9,137 @@
   </head>
   <body>
     <section class="page">
-      <h1 class="section-title">Your upcoming events</h1>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Create new &amp; exciting events</h1>
+          <p>Welcome back!</p>
+          <div class="hero-cta">
+            <a th:href="@{/eventPage}" class="btn btn-dark">Create Event</a>
+            <a th:href="@{/}" class="btn btn-light">Explore Events</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-media">
+        <div class="media-placeholder">
+          <div class="hero-wrap">
+            <img
+              class="hero-img"
+              th:src="@{/homePage.jpg}"
+              alt="Organizer hero"
+            />
+          </div>
+        </div>
+      </div>
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num">24+</div>
+          <div class="stat-sub">Organizers use our website</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">17M</div>
+          <div class="stat-sub">Number of current users</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">+95%</div>
+          <div class="stat-sub">Customer satisfaction</div>
+        </div>
+      </div>
 
-      <!-- Error message block -->
+      <div class="divider"></div>
+      <!-- Feature row 1: image left, text right -->
+      <div class="cards" style="grid-template-columns: 0.9fr 1.1fr">
+        <div class="card">
+          <div class="card-body">
+            <div class="img-placeholder">
+              <img
+                class="event-card-image"
+                th:src="@{/event-hosting.jpg}"
+                alt="Event hosting made easy"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Event hosting made easy</h3>
+            get-
+            <p class="card-text">
+              Set up events, manage attendees, and keep everything in one place
+              with streamlined tools.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature row 2: text left, image right -->
+      <div class="cards" style="grid-template-columns: 1.1fr 0.9fr">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Get paid &amp; earn more</h3>
+            <p class="card-text">
+              Track capacity and pricing to optimise your venue and maximise
+              your event’s success.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="img-placeholder">
+              <img
+                class="event-card-image"
+                th:src="@{/get-paid.jpg}"
+                alt="Get paid and earn more"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature row 3: image left, text right -->
+      <div class="cards" style="grid-template-columns: 0.9fr 1.1fr">
+        <div class="card">
+          <div class="card-body">
+            <div class="img-placeholder">
+              <img
+                class="event-card-image"
+                th:src="@{/publish.jpg}"
+                alt="Start publishing your events"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Start publishing your events!</h3>
+            <p class="card-text">
+              Share your events instantly and reach students across campus with
+              beautiful event pages.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <!-- Upcoming Events -->
+      <h2 class="section-title">Your upcoming events</h2>
+
+      <!-- Error message -->
       <div th:if="${error}" class="alert alert-error" th:text="${error}">
         Event not found or not hosted by you.
       </div>
 
+      <!-- Empty state -->
       <div th:if="${#lists.isEmpty(events)}" class="empty-events">
         You haven’t created any upcoming events yet.
       </div>
 
+      <!-- Event Cards -->
       <div class="cards" th:if="${!#lists.isEmpty(events)}">
         <article class="card" th:each="ev : ${events}">
           <div class="card-body">
+            <!-- Title + inline categories -->
             <div class="title-row">
               <h3 class="card-title" th:text="${ev.name}">Event name</h3>
               <div class="chip-row-inline" th:if="${ev.category != null}">
@@ -48,25 +165,20 @@
                 View RSVPs
               </a>
 
-              <!-- Organizer Edit/Delete Actions -->
               <a
-                th:href="@{'/event/edit/' + ${ev.eventId}}"
                 class="btn btn-blue"
-                >Edit</a
+                th:href="@{'/event/edit/' + ${ev.eventId}}"
               >
+                Edit
+              </a>
+
               <form
-                class="inline"
                 th:action="@{'/event/delete/' + ${ev.eventId}}"
                 method="post"
-                style="display: inline"
+                class="inline"
+                onsubmit="return confirm('Are you sure you want to delete this event?');"
               >
-                <button
-                  type="submit"
-                  onclick="return confirm('Are you sure you want to delete this event?');"
-                  class="btn btn-danger"
-                >
-                  Delete
-                </button>
+                <button type="submit" class="btn btn-danger">Delete</button>
               </form>
             </div>
           </div>
