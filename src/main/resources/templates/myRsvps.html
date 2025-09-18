@@ -3,43 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <title>My RSVPs</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
 <body>
    <header th:replace="~{components/header :: header}"></header>
+
    <div th:if="${events.isEmpty()}">
         <p>You haven't RSVP'd to any events yet.</p>
     </div>
-    <h1>My RSVPs Placeholder</h1>
-    <p>List of events will appear here.</p>
+    <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
+<div class="myRsvp">
 
-<div th:each="event : ${events}" class="event-card">
-        <h2 th:text="${event.name}">Event Name</h2>
-        <p th:text="${event.description}">Event Description</p>
-        <p>
-            Date: <span th:text="${#dates.format(event.dateTime,'yyyy-MM-dd HH:mm')}">Event Date</span>
-        </p>
-        <p>
-            Location: <span th:text="${event.location}">Event Location</span>
-        </p>
-        <p>
-          Categories:
-            <span th:each="cat, iter : ${event.category}" 
-                th:text="${iter.last} ? ${cat} : ${cat + ', '}"></span>
-      </p>
-        <p>
-            Price: <span th:text="${event.price}">Price</span>
-        </p>
+ <article
+          th:each="event : ${events}"
+          class="card myRsvp-card"
+          th:if="${!#lists.isEmpty(events)}"
+        >
+          <div class="card-body">
+            <h3 class="card-title" th:text="${event.name}">Event</h3>
+            <div class="card-price">
+              <span th:text="${event.price != null ? '$' + #numbers.formatDecimal(event.price, 1, 'COMMA', 2, 'POINT') : '$0'}">$0</span>
+            </div>
+            <p class="card-text" th:text="${event.description != null ? event.description : 'Event description goes here...'}">Body text.</p>
+            
+            <!-- Event Categories -->
+            <div class="card-categories" th:if="${!#lists.isEmpty(event.category)}">
+              <span th:each="catName : ${event.category}" class="chip" th:text="${catName}">Category</span>
+            </div>
+
+            <!-- Event Details -->
+            <div class="card-meta">
+              <span class="meta-item">📅 <span th:text="${#temporals.format(event.dateTime, 'MMM d')}">Date</span></span>
+              <span class="meta-item">📍 <span th:text="${event.location}">Location</span></span>
+            </div>
+
+          <div class="card-media">
+            <div class="img-placeholder">
+              <div class="placeholder-icon">
+                <img th:src="@{${event.imageUrl}}" alt="event image" class="event-card-image">
+              </div>
+            </div>
+          </div>  
 
         <!-- Cancel RSVP button -->
-        <form th:action="@{/rsvp/{userId}/event/{eventId}/delete(userId=${userId}, eventId=${event.eventId})}" 
+        <form  th:action="@{/rsvp/{userId}/rsvp/event/{eventId}/delete(userId=${userId}, eventId=${event.eventId})}" 
               method="post" 
               onsubmit="return confirm('Are you sure you want to cancel this RSVP?');">
-            <button type="submit" class="btn btn-red" style="width:100%">Cancel RSVP</button>
+            <button type="submit" class="btn btn-dark" style="width:100%">Cancel RSVP</button>
         </form>
-    </div>
+        </div>
 
-    <!-- <footer th:replace="~{components/footer :: footer}"> </footer> -->
+        </article>
+    </div>
+</div>
+
+    <footer th:replace="~{components/footer :: footer}"> </footer>
 
 </body>
 </html>
