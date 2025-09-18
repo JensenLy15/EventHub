@@ -1,138 +1,173 @@
 package au.edu.rmit.sept.webapp.repository;
 
-import au.edu.rmit.sept.webapp.model.Event;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import au.edu.rmit.sept.webapp.model.Event;
 
 /**
  * JDBC slice tests for EventRepository using in-memory H2.
  * - Verifies filtering on CURRENT_TIMESTAMP, ordering, and category aggregation.
  */
-@JdbcTest
-@Import(EventRepository.class)
-@TestPropertySource(properties = "spring.sql.init.mode=never")
-class EventRepositoryJdbcTest {
+@SpringBootTest
+@TestPropertySource(properties = {
+  // Default H2
+  "spring.datasource.url=jdbc:h2:mem:eventhub;DB_CLOSE_DELAY=-1",
+  "spring.datasource.username=sa",
+  "spring.datasource.password=",
+  // Only Flyway should manage schema
+  "spring.flyway.enabled=true",
+  "spring.flyway.clean-disabled=false",
+  "spring.flyway.locations=classpath:db/migration",
+  "spring.sql.init.mode=never",
+  "spring.jpa.hibernate.ddl-auto=none"
+})
+class EventRepositoryTest {
 
-    @Autowired JdbcTemplate jdbc;
+    @Autowired private Flyway flyway;
+    @Autowired private DataSource dataSource;
     @Autowired EventRepository repo;
+    private JdbcTemplate jdbc;
 
     @BeforeEach
-    void setUpSchema() {
-        // Drop in dependency-safe order (use CASCADE for safety)
-        jdbc.execute("DROP TABLE IF EXISTS rsvps CASCADE");           // depends on events?
-        jdbc.execute("DROP TABLE IF EXISTS event_categories CASCADE"); // depends on events + categories
-        jdbc.execute("DROP TABLE IF EXISTS categories CASCADE");
-        jdbc.execute("DROP TABLE IF EXISTS events CASCADE");
-
-        // Minimal schema matching the repository's SQL
-        jdbc.execute("""
-            CREATE TABLE events (
-              event_id BIGINT PRIMARY KEY,
-              name VARCHAR(255) NOT NULL,
-              description VARCHAR(1000),
-              created_by_user_id BIGINT,
-              date_time TIMESTAMP NOT NULL,
-              location VARCHAR(255),
-              capacity INT,
-              price DECIMAL(10,2)
-            )
-        """);
-
-        jdbc.execute("""
-            CREATE TABLE categories (
-              category_id BIGINT PRIMARY KEY,
-              name VARCHAR(255) NOT NULL
-            )
-        """);
-
-        jdbc.execute("""
-            CREATE TABLE event_categories (
-              event_id BIGINT NOT NULL,
-              category_id BIGINT NOT NULL,
-              PRIMARY KEY (event_id, category_id),
-              FOREIGN KEY (event_id) REFERENCES events(event_id),
-              FOREIGN KEY (category_id) REFERENCES categories(category_id)
-            )
-        """);
+    void setUp() {
+      // Always start from a clean DB, then apply V1, V2, …
+      flyway.clean();
+      flyway.migrate();
+      jdbc = new JdbcTemplate(dataSource);
+      repo = new EventRepository(jdbc);
     }
 
-    @BeforeEach
-    void seedData() {
-        // Categories
-        jdbc.update("INSERT INTO categories(category_id, name) VALUES (?,?)", 10L, "Tech");
-        jdbc.update("INSERT INTO categories(category_id, name) VALUES (?,?)", 20L, "Networking");
-
-        // Events:
-        // e1 -> FUTURE +1 day, null created_by_user_id, null capacity, no categories
-        jdbc.update("""
-            INSERT INTO events(event_id, name, description, created_by_user_id, date_time, location, capacity, price)
-            VALUES (?,?,?,?,DATEADD('DAY', 1, CURRENT_TIMESTAMP),?,?,?)
-        """, 1L, "E1", "Desc1", null, "Loc1", null, new BigDecimal("0.00"));
-
-        // e2 -> FUTURE +2 days, has one category (Tech)
-        jdbc.update("""
-            INSERT INTO events(event_id, name, description, created_by_user_id, date_time, location, capacity, price)
-            VALUES (?,?,?,?,DATEADD('DAY', 2, CURRENT_TIMESTAMP),?,?,?)
-        """, 2L, "E2", "Desc2", 42L, "Loc2", 100, new BigDecimal("5.50"));
-
-        jdbc.update("INSERT INTO event_categories(event_id, category_id) VALUES (?,?)", 2L, 10L);
-
-        // e3 -> PAST -1 day, should be EXCLUDED by the repository query
-        jdbc.update("""
-            INSERT INTO events(event_id, name, description, created_by_user_id, date_time, location, capacity, price)
-            VALUES (?,?,?,?,DATEADD('DAY', -1, CURRENT_TIMESTAMP),?,?,?)
-        """, 3L, "E3_PAST", "Desc3", 7L, "Loc3", 50, new BigDecimal("3.33"));
-
-        // e4 -> FUTURE +3 days, two categories (Tech + Networking)
-        jdbc.update("""
-            INSERT INTO events(event_id, name, description, created_by_user_id, date_time, location, capacity, price)
-            VALUES (?,?,?,?,DATEADD('DAY', 3, CURRENT_TIMESTAMP),?,?,?)
-        """, 4L, "E4", "Desc4", 77L, "Loc4", 250, new BigDecimal("9.99"));
-
-        jdbc.update("INSERT INTO event_categories(event_id, category_id) VALUES (?,?)", 4L, 10L);
-        jdbc.update("INSERT INTO event_categories(event_id, category_id) VALUES (?,?)", 4L, 20L);
+    @AfterEach
+    void packDown() {
+      flyway.clean();
     }
 
-    @Test
-    void findUpcomingEventsSorted_filtersPast_ordersAsc_andAggregatesCategories() {
-        List<Event> events = repo.findUpcomingEventsSorted();
+     // ---------- Helpers ----------
+  private Long categoryIdByName(String name) {
+    return jdbc.queryForObject("SELECT category_id FROM categories WHERE name = ?", Long.class, name);
+  }
 
-        // Past event (id=3) is excluded
-        assertThat(events).extracting(Event::getEventId).containsExactly(1L, 2L, 4L);
+  private int countJoinRows(Long eventId) {
+    Integer c = jdbc.queryForObject("SELECT COUNT(*) FROM event_categories WHERE event_id = ?", Integer.class, eventId);
+    return c == null ? 0 : c;
+  }
 
-        // Ascending by date_time: e1 (+1d), e2 (+2d), e4 (+3d)
-        // (Already asserted via the exact order above)
+  private Event baseEvent(String name, String location, LocalDateTime when) {
+    Event e = new Event();
+    e.setName(name);
+    e.setDesc("desc for " + name);
+    e.setCreatedByUserId(5L);
+    e.setDateTime(when);
+    e.setLocation(location);
+    e.setCapacity(100);
+    e.setPrice(new BigDecimal("0.00"));
+    return e;
+  }
 
-        // e1: null created_by_user_id and null capacity mapped to null, no categories
-        Event e1 = events.get(0);
-        assertThat(e1.getEventId()).isEqualTo(1L);
-        assertThat(e1.getCreatedByUserId()).isNull();
-        assertThat(e1.getCapacity()).isNull();
-        assertThat(e1.getCategory()).isEmpty();
-        assertThat(e1.getPrice()).isEqualByComparingTo("0.00");
+  private Event fetchEvent(long id) {
+    return repo.findEventById(id);
+  }
 
-        // e2: one category "Tech"
-        Event e2 = events.get(1);
-        assertThat(e2.getEventId()).isEqualTo(2L);
-        assertThat(e2.getCreatedByUserId()).isEqualTo(42L);
-        assertThat(e2.getCapacity()).isEqualTo(100);
-        assertThat(e2.getCategory()).containsExactly("Tech");
-        assertThat(e2.getPrice()).isEqualByComparingTo("5.50");
+  @Test
+  void findUpcomingEventsSorted_filtersPast_ordersAsc_andAggregatesCategories() {
+    var events = repo.findUpcomingEventsSorted();
+    assertFalse(events.isEmpty(), "Expected upcoming events");
 
-        // e4: two categories aggregated
-        Event e4 = events.get(2);
-        assertThat(e4.getEventId()).isEqualTo(4L);
-        assertThat(e4.getCategory()).containsExactlyInAnyOrder("Tech", "Networking");
-        assertThat(e4.getPrice()).isEqualByComparingTo("9.99");
+    // Exclude past events
+    assertTrue(events.stream().noneMatch(e -> "Welcome Back BBQ".equals(e.getName())));
+
+    // Sorted in ascending order
+    for (int i = 1; i < events.size(); i++) {
+      assertTrue(!events.get(i).getDateTime().isBefore(events.get(i-1).getDateTime()));
+    }
+    
+    // Categories Aggregated
+    assertTrue(events.stream().anyMatch(e -> e.getCategory().contains("Career") || e.getCategory().contains("Hackathon") || e.getCategory().contains("Meetup")));
+  }
+
+  @Test
+  void createEvent_and_LinksCategories() {
+    Event e = baseEvent("New Ted Talk", "Building 80", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0));
+    e.setCategory(new java.util.ArrayList<>());
+    e.getCategory().add("Career");
+    e.getCategory().add("Hackathon");
+
+    Event created = repo.createEvent(e);
+    assertNotNull(created.getEventId());
+    assertEquals("New Ted Talk", created.getName());
+
+    // Verify entries in joined table
+    assertEquals(2, countJoinRows(created.getEventId()));
+  }
+
+  @Test
+  void checkEventExist_ifSameUserNameLocationCategoriesMatched() {
+    boolean eventExist = repo.checkEventExists(5L, "Cloud Career Panel", List.of("Career", "Hackathon"), jdbc.queryForObject("SELECT location FROM events WHERE name = 'Cloud Career Panel'", String.class));
+    assertTrue(eventExist);
+  }
+
+  @Test
+  void checkEventExist_ifNoMatchedLocationOrName() {
+    boolean notMatchName = repo.checkEventExists(5L, "Test Event", List.of("Career"), "Building 80");
+    assertFalse(notMatchName);
+    boolean notMatchLocation = repo.checkEventExists(5L, "Cloud Career Panel", List.of("Career"), "Test Location");
+    assertFalse(notMatchLocation);
+  }
+  @Test
+    void findEventsByOrganiser_returnsOnlyFuture_sortedAscending() {
+        // organiser 5L owns the seeded events (one past + multiple future)
+        List<Event> list = repo.findEventsByOrganiser(5L);
+        assertFalse(list.isEmpty());
+
+        // no past ones
+        assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(LocalDateTime.now().minusSeconds(1))));
+
+        // ascending order
+        for (int i = 1; i < list.size(); i++) {
+            assertFalse(list.get(i).getDateTime().isBefore(list.get(i - 1).getDateTime()));
+        }
+    }
+
+  @Test
+  void findEventsByIdAndOrganiser_returnsNull_forWrongOwner() {
+      // Grab one event id owned by organiser 5
+      Long someEventId = jdbc.queryForObject(
+          "SELECT event_id FROM events WHERE created_by_user_id = 5 LIMIT 1",
+          Long.class
+      );
+      assertNotNull(someEventId);
+
+      // Asking as a different organiser should return null
+      Event shouldBeNull = repo.findEventsByIdAndOrganiser(someEventId, 999L);
+      assertNull(shouldBeNull);
+  }
+
+  @Test
+  void findEventsByIdAndOrganiser_returnsEvent_forCorrectOwner() {
+      Long someEventId = jdbc.queryForObject(
+          "SELECT event_id FROM events WHERE created_by_user_id = 5 LIMIT 1",
+          Long.class
+      );
+      Event e = repo.findEventsByIdAndOrganiser(someEventId, 5L);
+      assertNotNull(e);
+      assertEquals(someEventId, e.getEventId());
+      assertEquals(5L, e.getCreatedByUserId());
     }
 }

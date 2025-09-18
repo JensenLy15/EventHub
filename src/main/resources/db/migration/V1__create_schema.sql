@@ -1,7 +1,5 @@
-DROP TABLE IF EXISTS rsvp;
 DROP TABLE IF EXISTS event_categories;
 DROP TABLE IF EXISTS events;
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS categories;
 
 CREATE TABLE categories (
