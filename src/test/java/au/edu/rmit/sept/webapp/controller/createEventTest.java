@@ -1,6 +1,7 @@
 package au.edu.rmit.sept.webapp.controller;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -164,6 +165,7 @@ public class createEventTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Name is required")));
     }
+    
 
 }
 
