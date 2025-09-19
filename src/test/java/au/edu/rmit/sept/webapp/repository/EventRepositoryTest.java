@@ -213,4 +213,53 @@ class EventRepositoryTest {
     List<Long> joinIds = categoryIdsForEvent(saved.getEventId());
     assertEquals(2, joinIds.size(), "Should have two category joins");
   }
+
+
+  @Test
+  void should_updateEventWithAllExtraInfo() {
+      // Seed an initial event first
+      Event e = new Event();
+      e.setName("Tech Social");
+      e.setDesc("Initial desc");
+      e.setCreatedByUserId(null);
+      e.setDateTime(LocalDateTime.now().plusDays(5));
+      e.setLocation("B12 Lounge");
+      e.setCapacity(50);
+      e.setPrice(new BigDecimal("5.00"));
+      e.setDetailedDescription("Initial long details.");
+      e.setAgenda("6:00 – Intro\n6:30 – Icebreakers");
+      e.setSpeakers("Host Team");
+      e.setDressCode("Casual");
+
+      Event saved = repo.createEventWithAllExtraInfo(e, List.of("Career", "Hackathon"));
+      long eventId = saved.getEventId();
+
+      // Now update several fields + categories
+      saved.setName("Tech Social (Updated)");
+      saved.setDesc("Updated short desc");
+      saved.setDateTime(LocalDateTime.now().plusDays(7));
+      saved.setLocation("Building 80");
+      saved.setCapacity(200);
+      saved.setPrice(new BigDecimal("10.00"));
+
+      saved.setDetailedDescription("Updated long details for the social.");
+      saved.setAgenda("6:00 – Doors\n6:30 – Networking\n7:00 – Lightning talks");
+      saved.setSpeakers("Jane Doe, John Smith");
+      saved.setDressCode("Business casual");
+
+      int rows = repo.updateEventWithAllExtraInfo(saved, List.of("Social")); // swap categories
+      assertEquals(1, rows);
+
+      Map<String, Object> row = loadEventRow(eventId);
+      assertEquals("Tech Social (Updated)", row.get("name"));
+      assertEquals("Updated short desc", row.get("description"));
+      assertEquals("Building 80", row.get("location"));
+      assertEquals("Updated long details for the social.", row.get("detailed_description"));
+      assertEquals("6:00 – Doors\n6:30 – Networking\n7:00 – Lightning talks", row.get("agenda"));
+      assertEquals("Jane Doe, John Smith", row.get("speakers"));
+      assertEquals("Business casual", row.get("dress_code"));
+
+      List<Long> joinIds = categoryIdsForEvent(eventId);
+      assertEquals(1, joinIds.size(), "Should have exactly one category after update");
+  }
 }
