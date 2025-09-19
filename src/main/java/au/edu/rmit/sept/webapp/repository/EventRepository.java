@@ -36,7 +36,26 @@ public class EventRepository {
     new ArrayList<>(),
     rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
     rs.getBigDecimal("price")
-);
+  );
+
+  private static final RowMapper<Event> FULL_MAPPER = (rs, rowNum) -> {
+    Event ev = new Event(
+        rs.getLong("event_id"),
+        rs.getString("name"),
+        rs.getString("description"),
+        rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+        rs.getTimestamp("date_time").toLocalDateTime(),
+        rs.getString("location"),
+        new ArrayList<>(),
+        rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+        rs.getBigDecimal("price")
+    );
+    ev.setDetailedDescription(rs.getString("detailed_description"));
+    ev.setAgenda(rs.getString("agenda"));
+    ev.setSpeakers(rs.getString("speakers"));
+    ev.setDressCode(rs.getString("dress_code"));
+    return ev;
+  };
 
 
   public List<Event> findUpcomingEventsSorted () {
@@ -126,10 +145,6 @@ public class EventRepository {
         jdbcTemplate.update(joinSql, event.getEventId(), catId);
     }   
   }
-  System.out.println("[DEBUG] Saved eventId=" + event.getEventId() 
-                   + " name=" + event.getName() 
-                   + " (no explicit categoryIds)");
-
     return event;
   }
 
@@ -208,8 +223,13 @@ public class EventRepository {
 }
   public Event findEventById(Long eventId)
   {
-    String sql = "SELECT * FROM events WHERE event_id = ?";
-    return jdbcTemplate.queryForObject(sql, MAPPER, eventId);
+    String sql = """
+        SELECT event_id, name, description, created_by_user_id, date_time, location,
+               capacity, price, detailed_description, agenda, speakers, dress_code
+        FROM events
+        WHERE event_id = ?
+        """;;
+    return jdbcTemplate.queryForObject(sql, FULL_MAPPER, eventId);
   }
 
   public int updateEvent(Event event, List<Long> categoryIds)
