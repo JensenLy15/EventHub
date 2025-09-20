@@ -104,6 +104,6 @@ public class RSVPController {
         model.addAttribute("events", events);
         model.addAttribute("userId", userId);
         return "myRsvps"; 
-}
+    }
 }
 
