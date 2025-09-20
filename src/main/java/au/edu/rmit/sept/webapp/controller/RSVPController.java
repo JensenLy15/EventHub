@@ -106,6 +106,6 @@ public class RSVPController {
         model.addAttribute("userId", userId);
         model.addAttribute("sortOrder", sortOrder);
         return "myRsvps"; 
-}
+    }
 }
 

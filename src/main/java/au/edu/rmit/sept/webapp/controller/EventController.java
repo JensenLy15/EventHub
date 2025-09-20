@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.EventCategory;
 import au.edu.rmit.sept.webapp.service.CategoryService;
+import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
 import jakarta.validation.Valid;
@@ -26,11 +27,15 @@ public class EventController {
     private final CategoryService categoryService;
     private final RSVPService rsvpService;
 
-    public EventController(EventService Service, CategoryService categoryService, RSVPService rsvpService)
+    private final CurrentUserService currentUserService;
+
+    public EventController(EventService Service, CategoryService categoryService, RSVPService rsvpService, CurrentUserService currentUserService)
     {
       this.eventService = Service;
       this.categoryService = categoryService;
       this.rsvpService = rsvpService;
+
+      this.currentUserService = currentUserService;
     }
   
   //Create Event
@@ -48,7 +53,9 @@ public class EventController {
       @RequestParam(name = "categoryIds", required = false) List<Long> categoryIds, Model model, 
       RedirectAttributes redirectAttributes) {
 
-      event.setCreatedByUserId(5L);
+      // event.setCreatedByUserId(5L);
+      long currentUserId = currentUserService.getCurrentUserId();
+      event.setCreatedByUserId(currentUserId);
 
       if (categoryIds == null) categoryIds = List.of();
 
@@ -164,7 +171,9 @@ public class EventController {
         }
 
         event.setEventId(eventId);
-        event.setCreatedByUserId(5L);
+        long currentUserId = currentUserService.getCurrentUserId();
+        event.setCreatedByUserId(currentUserId);
+        // event.setCreatedByUserId(5L); //remove the hardcoded userId
         eventService.updateEvent(event, categoryIds);
         redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
         return "redirect:/organiser/dashboard";

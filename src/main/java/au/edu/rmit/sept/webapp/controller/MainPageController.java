@@ -1,5 +1,4 @@
 package au.edu.rmit.sept.webapp.controller;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,7 @@ import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.EventCategory;
 import au.edu.rmit.sept.webapp.repository.RsvpRepository;
 import au.edu.rmit.sept.webapp.service.CategoryService;
+import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 
 @Controller
@@ -20,18 +20,27 @@ public class MainPageController {
   private final EventService eventService;
   private final RsvpRepository rsvpRepository;
   private  final CategoryService categoryService;
+
+  // private final UserService userService;
+  private final CurrentUserService currentUserService;
+
   
-  public MainPageController(EventService eventService, RsvpRepository rsvpRepository, CategoryService categoryService) {
+  public MainPageController(EventService eventService, RsvpRepository rsvpRepository, CategoryService categoryService
+  
+  , CurrentUserService currentUserService) {
     this.eventService = eventService;
     this.rsvpRepository = rsvpRepository;
     this.categoryService = categoryService;
+
+    this.currentUserService = currentUserService;
   }
 
   @GetMapping("/")
-  public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model) {
+  public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model ) {
     List<Event> events = eventService.getUpcomingEvents();
-    Long currentUserId = 5L; // placeholder user
-    
+Long currentUserId = currentUserService.getCurrentUserId();
+
+
     // Map to hold RSVP status for each event
     Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
     for (Event event : events) {

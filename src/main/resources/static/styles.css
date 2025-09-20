@@ -31,6 +31,61 @@ body {
   text-align: left;
 }
 
+/* Auth Pages */
+.auth-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 32px;
+  background: var(--card);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.auth-container h2 {
+  margin: 0 0 24px;
+  text-align: center;
+  color: var(--brand);
+}
+
+.auth-form .form-group {
+  margin-bottom: 16px;
+}
+
+.auth-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.auth-form .form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.auth-form button {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.auth-links {
+  margin-top: 24px;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.auth-links .link {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.auth-links .link:hover {
+  text-decoration: underline;
+}
+
 /* Top bar */
 .topbar {
   display: flex;

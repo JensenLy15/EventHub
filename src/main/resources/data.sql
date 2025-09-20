@@ -20,6 +20,13 @@ VALUES ('Dummy4', 'dummy4@example.com', 'password123', 'student', 'active');
 INSERT INTO users (name, email, password, role, status)
 VALUES ('Dummy5', 'dummy5@example.com', 'password123', 'organiser', 'active');
 
+
+INSERT INTO users (name, email, password, role, status)
+VALUES ('Dummy6', 'dummy6@example.com', 'password123', 'organiser', 'active');
+
+INSERT INTO users (name, email, password, role, status)
+VALUES ('Dummy7', 'dummy7@example.com', 'password123', 'admin', 'active');
+
 -- Past event (won't show in "upcoming")
 INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
 VALUES ('Welcome Back BBQ', 'Kick off social', 5, DATEADD('DAY', -10, CURRENT_TIMESTAMP), 'Alumni Courtyard', 200, 0.00);
@@ -41,6 +48,11 @@ WHERE e.name='Cloud Career Panel' AND c.name='Career';
 
 INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
 VALUES ('Hack Night', 'Bring your laptop', 5, DATEADD('DAY', 1, CURRENT_TIMESTAMP), 'Fab Lab', 80, 0.00);
+
+
+
+INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
+VALUES ('SUPER STAR', 'Become a model', 6, DATEADD('DAY', 1, CURRENT_TIMESTAMP), 'Fab Lab', 400, 0.00);
 
 -- Hack Night → Hackathon
 INSERT INTO event_categories (event_id, category_id)
