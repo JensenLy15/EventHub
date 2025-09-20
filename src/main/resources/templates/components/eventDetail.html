@@ -1,0 +1,48 @@
+<!-- Fragment for full event details -->
+<div th:fragment="eventDetails(event)" class="event-details">
+  <h2 class="event-title" th:text="${event.name}">Event Name</h2>
+
+  <div class="event-meta">
+    <p>
+      <strong>Date:</strong>
+      <span
+        th:text="${#temporals.format(event.dateTime, 'EEE, d MMM yyyy HH:mm')}"
+      ></span>
+    </p>
+    <p><strong>Location:</strong> <span th:text="${event.location}"></span></p>
+    <p>
+      <strong>Price:</strong>
+      <span
+        th:text="${event.price != null || event.price > 0 ? '$' + #numbers.formatDecimal(event.price, 1, 'COMMA', 2, 'POINT') : 'Free'}"
+      ></span>
+    </p>
+  </div>
+
+  <div th:if="${event.detailedDescription}">
+    <h3>Description</h3>
+    <p th:text="${event.detailedDescription}"></p>
+  </div>
+
+  <div th:if="${event.agenda}">
+    <h3>Agenda</h3>
+    <!-- treat agenda as preformatted text -->
+    <pre th:text="${event.agenda}"></pre>
+  </div>
+
+  <div th:if="${event.speakers}">
+    <h3>Speakers</h3>
+    <p th:text="${event.speakers}"></p>
+  </div>
+
+  <div th:if="${event.dressCode}">
+    <h3>Dress Code</h3>
+    <p th:text="${event.dressCode}"></p>
+  </div>
+
+  <div class="event-categories" th:if="${!#lists.isEmpty(event.category)}">
+    <h3>Categories</h3>
+    <span th:each="cat : ${event.category}" class="chip" th:text="${cat}"
+      >Category</span
+    >
+  </div>
+</div>
