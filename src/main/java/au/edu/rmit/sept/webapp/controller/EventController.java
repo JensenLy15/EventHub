@@ -194,4 +194,14 @@ public class EventController {
       return "index";
     }
 
+    @GetMapping("/events/{id}")
+    public String viewEvent(@PathVariable Long id, Model model) {
+        Event event = eventService.findById(id);
+        if (event == null) {
+            return "redirect:/";
+        }
+        model.addAttribute("event", event);
+        return "eventDetail";
+    }
+
 }
