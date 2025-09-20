@@ -60,8 +60,7 @@ public class EventRepository {
 
   public List<Event> findUpcomingEventsSorted () {
     String sql = """
-        SELECT  e.event_id, e.name, e.description, e.created_by_user_id,
-                e.date_time, e.location, e.capacity, e.price, c.name as category_name
+        SELECT  e.*, c.name as category_name
         FROM events e
         LEFT JOIN event_categories ec ON e.event_id = ec.event_id
         LEFT JOIN categories c ON ec.category_id = c.category_id
@@ -88,6 +87,10 @@ public class EventRepository {
                       rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
                       rs.getBigDecimal("price")
                   );
+                  ev.setDetailedDescription(rs.getString("detailed_description"));
+                  ev.setAgenda(rs.getString("agenda"));
+                  ev.setSpeakers(rs.getString("speakers"));
+                  ev.setDressCode(rs.getString("dress_code"));
                   events.put(eventId, ev);
               }
 
@@ -308,9 +311,7 @@ public class EventRepository {
   // get upcoming events created by a given organiser
   public List<Event> findEventsByOrganiser(Long organiserId) {
     String sql = """
-        SELECT e.event_id, e.name, e.description, e.created_by_user_id,
-               e.date_time, e.location, e.capacity, e.price,
-               c.name AS category_name
+        SELECT e.*, c.name AS category_name
         FROM events e
         LEFT JOIN event_categories ec ON e.event_id = ec.event_id
         LEFT JOIN categories c ON ec.category_id = c.category_id
@@ -336,6 +337,10 @@ public class EventRepository {
                       rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
                       rs.getBigDecimal("price")
                   );
+                  event.setDetailedDescription(rs.getString("detailed_description"));
+                  event.setAgenda(rs.getString("agenda"));
+                  event.setSpeakers(rs.getString("speakers"));
+                  event.setDressCode(rs.getString("dress_code"));
                   map.put(id, event);
               }
               String cat = rs.getString("category_name");
