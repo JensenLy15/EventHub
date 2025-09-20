@@ -123,7 +123,7 @@ public class EventController {
           return "eventPage";
       }
 
-      eventService.saveEventWithCategories(event, categoryIds);
+      eventService.createEventWithAllExtraInfo(event, categoryIds);
       redirectAttributes.addFlashAttribute("successMessage", "Event created successfully!");
       return "redirect:/organiser/dashboard";
   }
@@ -165,7 +165,7 @@ public class EventController {
 
         event.setEventId(eventId);
         event.setCreatedByUserId(5L);
-        eventService.updateEvent(event, categoryIds);
+        eventService.updateEventWithAllExtraInfo(event, categoryIds);
         redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
         return "redirect:/organiser/dashboard";
     }
