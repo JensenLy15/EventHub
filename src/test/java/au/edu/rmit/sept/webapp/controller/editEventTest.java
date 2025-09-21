@@ -59,6 +59,7 @@ public class editEventTest {
 
     @BeforeEach
     void setUp() {
+        // configure MockMvc with Spring Security support
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -68,6 +69,10 @@ public class editEventTest {
         when(currentUserService.getCurrentUserId()).thenReturn(5L);
     }
 
+    /**
+     * test case: Successful event update form submission.
+     * expected result: Redirects to organiser dashboard with success message.
+     */
     @Test
     void ShowSuccessfulUpdateOfEventForm() throws Exception {
         List<EventCategory> categories = List.of(
@@ -115,6 +120,10 @@ public class editEventTest {
         .andExpect(flash().attribute("successMessage", "Event updated successfully!"));
     }
 
+    /**
+     * test case: Invalid date provided (past date).
+     * expected result: Stay on same page and show "Date must be in the future" error.
+     */
     @Test
     void ShowInvalidFormatMessage() throws Exception {
         List<EventCategory> categories = List.of(
@@ -143,6 +152,10 @@ public class editEventTest {
         .andExpect(content().string(containsString("Date must be in the future")));
     }
 
+    /**
+     * test case: Missing required field (name is blank).
+     * expected result: Show "Name is required" validation error.
+     */
     @Test
     void ShowMissingRequiredFieldPrompt() throws Exception {
         List<EventCategory> categories = List.of(

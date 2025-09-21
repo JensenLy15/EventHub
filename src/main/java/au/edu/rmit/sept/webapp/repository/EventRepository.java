@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,11 +20,12 @@ public class EventRepository {
   
   private final JdbcTemplate jdbcTemplate;
 
+  // inject JdbcTemplate for database access
   public EventRepository(JdbcTemplate jdbcTemplate){
     this.jdbcTemplate = jdbcTemplate;
   }
 
-
+  // basic mapper for Event
   private static final RowMapper<Event> MAPPER = (rs, rowNum) -> new Event(
     rs.getLong("event_id"),
     rs.getString("name"),
@@ -38,6 +38,7 @@ public class EventRepository {
     rs.getBigDecimal("price")
   );
 
+  // full mapper for Event (includes detailed info)
   private static final RowMapper<Event> FULL_MAPPER = (rs, rowNum) -> {
     Event ev = new Event(
         rs.getLong("event_id"),
@@ -57,7 +58,7 @@ public class EventRepository {
     return ev;
   };
 
-
+  // get all upcoming events sorted by date, with categories included
   public List<Event> findUpcomingEventsSorted () {
     String sql = """
         SELECT  e.*, c.name as category_name
@@ -93,7 +94,8 @@ public class EventRepository {
                   ev.setDressCode(rs.getString("dress_code"));
                   events.put(eventId, ev);
               }
-
+              
+              // add category if present
               String catName = rs.getString("category_name");
               if (catName != null) {
                   ev.getCategory().add(catName);
@@ -105,7 +107,7 @@ public class EventRepository {
   }
 
 
-
+  // create new event (basic version) and insert into DB
   public Event createEvent(Event event) {
     String sql = """
         INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
@@ -151,7 +153,7 @@ public class EventRepository {
     return event;
   }
 
-
+  // check if an event with same organiser, name, location and categories already exists
   public boolean checkEventExists(Long organiserId, String name, List<String> categoryNames, String location)
   {
     if(categoryNames == null || categoryNames.isEmpty()) return false;
@@ -183,6 +185,7 @@ public class EventRepository {
       return count != null && count > 0;
   }
 
+  // create event and insert category IDs directly
   public Event createEventWithCategories(Event event, List<Long> categoryIds) {
     // Insert into events
     String sql = """
@@ -216,7 +219,7 @@ public class EventRepository {
             jdbcTemplate.update(joinSql, event.getEventId(), catId);
         }
     }
-    // ✅ Debug log
+    // Debug log
     System.out.println("[DEBUG] Saved eventId=" + event.getEventId() 
     + " name=" + event.getName() 
     + " with categories=" + categoryIds);
@@ -224,6 +227,7 @@ public class EventRepository {
 
     return event;
 }
+  // find single event by ID
   public Event findEventById(Long eventId)
   {
     String sql = """
@@ -234,7 +238,7 @@ public class EventRepository {
         """;;
     return jdbcTemplate.queryForObject(sql, FULL_MAPPER, eventId);
   }
-
+  // update event (basic version) and its categories
   public int updateEvent(Event event, List<Long> categoryIds)
   {
     String sql = """
@@ -272,6 +276,7 @@ public class EventRepository {
     return rows;
   }
 
+  // delete event and its categories
   public void deleteEventbyId(Long eventId)
   {
 
@@ -284,7 +289,7 @@ public class EventRepository {
     jdbcTemplate.update(deleteEventSql, eventId);
   }
 
-  //Filter events by category
+  // filter events by category
   public List<Event> filterEventsByCategory(Long categoryId)
   {
     String sql = """
@@ -350,7 +355,7 @@ public class EventRepository {
       });
   }
 
-  // Find a single event by id that belongs to a specific organiser (preventing pull rsvp data from other events created by other organisers)
+  // find a single event by id that belongs to a specific organiser (preventing pull rsvp data from other events created by other organisers)
   public Event findEventsByIdAndOrganiser(Long eventId, Long organiserId) {
     String sql = """
         SELECT e.event_id, e.name, e.description, e.created_by_user_id,
@@ -372,6 +377,7 @@ public class EventRepository {
     return list.isEmpty() ? null : list.get(0);
   }
 
+  // create event with all extra info fields (description, agenda, speakers, dress code)
   public Event createEventWithAllExtraInfo(Event event, List<Long> categoryIds) {
     final String sql = """
         INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price,
@@ -411,7 +417,7 @@ public class EventRepository {
   }
     return event;
 }
-
+// update event with all extra info and categories
 public int updateEventWithAllExtraInfo(Event event, List<Long> categoryIds) {
   final String sql = """
       UPDATE events
@@ -444,7 +450,7 @@ public int updateEventWithAllExtraInfo(Event event, List<Long> categoryIds) {
       event.getEventId()
   );
 
-  // 🔄 update categories
+  // update categories
   jdbcTemplate.update("DELETE FROM event_categories WHERE event_id = ?", event.getEventId());
 
   if (categoryIds != null && !categoryIds.isEmpty()) {

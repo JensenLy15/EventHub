@@ -86,6 +86,7 @@ public class Event {
                   this.dressCode = "";
                 }
 
+  // ===== Setters =====
   public void setImageUrl(String imageUrl){
     this.imageUrl = imageUrl;
   }
@@ -132,6 +133,7 @@ public class Event {
     this.dressCode = dressCode;
   }
   
+  // ===== Getters =====
   public String getImageUrl() { return imageUrl; } 
   public Long getEventId() { return eventId; }
   public String getName() { return name; }

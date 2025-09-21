@@ -29,6 +29,7 @@ public class EventController {
 
     private final CurrentUserService currentUserService;
 
+    // constructor injection for services
     public EventController(EventService Service, CategoryService categoryService, RSVPService rsvpService, CurrentUserService currentUserService)
     {
       this.eventService = Service;
@@ -38,16 +39,18 @@ public class EventController {
       this.currentUserService = currentUserService;
     }
   
-  //Create Event
+  // ================= CREATE EVENT =================
+  // render event creation form
   @GetMapping("/eventPage")
     public String eventPage(Model model) {
       List<EventCategory> categories = categoryService.getAllCategories();
       model.addAttribute("categories", categories);
       model.addAttribute("event", new Event());
       model.addAttribute("isEdit", false);
-      return "eventPage";
+      return "eventPage"; // return template
     }
-
+  
+  // handle event creation form submission
   @PostMapping("/eventForm")
   public String submitEvent(@Valid @ModelAttribute("event") Event event, BindingResult result, 
       @RequestParam(name = "categoryIds", required = false) List<Long> categoryIds, Model model, 
@@ -58,7 +61,8 @@ public class EventController {
       event.setCreatedByUserId(currentUserId);
 
       if (categoryIds == null) categoryIds = List.of();
-
+      
+    // handle validation errors from @Valid annotations
       if (result.hasErrors()) {
           model.addAttribute("categories", categoryService.getAllCategories());
           model.addAttribute("isEdit", false);
@@ -74,7 +78,6 @@ public class EventController {
       }
 
       List<String> categoryNames = categoryService.findCategoryNamesByIds(categoryIds);
-
       if(!categoryNames.isEmpty()){
         String categoryName = categoryNames.get((0));
         System.out.println(categoryName);
@@ -109,6 +112,7 @@ public class EventController {
         event.setImageUrl("/meetup.jpg");
       }
 
+      // validate event date (must be in the future)
       if (!eventService.isValidDateTime(event.getDateTime())) {
           model.addAttribute("confirmation", "Date must be in the future");
           model.addAttribute("categories", categoryService.getAllCategories());
@@ -130,12 +134,14 @@ public class EventController {
           return "eventPage";
       }
 
+      // save event + extra info (categories, etc.)
       eventService.createEventWithAllExtraInfo(event, categoryIds);
       redirectAttributes.addFlashAttribute("successMessage", "Event created successfully!");
       return "redirect:/organiser/dashboard";
   }
 
-    // Edit form
+    // ================= EDIT EVENT =================
+    // render edit event form with existing details
     @GetMapping("/event/edit/{id}")
     public String editEvent(@PathVariable("id") Long eventId, Model model)
     {
@@ -155,6 +161,7 @@ public class EventController {
       return "eventPage";
     }
 
+    // handle update form submission
     @PostMapping("/event/edit/{id}")
     public String updateEvent(
         @PathVariable("id") Long eventId,
@@ -170,6 +177,7 @@ public class EventController {
             return "eventPage";
         }
 
+        // keep original ID & re-attach current user
         event.setEventId(eventId);
         long currentUserId = currentUserService.getCurrentUserId();
         event.setCreatedByUserId(currentUserId);
@@ -178,15 +186,19 @@ public class EventController {
         return "redirect:/organiser/dashboard";
     }
 
+    // ================= DELETE EVENT =================
     @PostMapping("/event/delete/{id}")
     public String deleteEvent(@PathVariable("id") long eventId, RedirectAttributes redirectAttributes)
     {
+      // remove related RSVPs first to maintain referential integrity
       rsvpService.deleteRsvpByEvent(eventId);
       eventService.deleteEventbyId(eventId);
+
       redirectAttributes.addFlashAttribute("successMessage", "Event deleted successfully!");
       return  "redirect:/organiser/dashboard";
     }
 
+    // ================= DELETE CATEGORY =================
     @PostMapping("/category/delete/{id}")
     public String deleteCategory(@PathVariable("id") long categoryId, RedirectAttributes redirectAttributes)
     {
@@ -195,6 +207,7 @@ public class EventController {
       return "redirect:/";
     }
 
+    // ================= FILTER EVENTS =================
     @GetMapping("/FilterByCategory/{id}")
     public String filterEventsByCategory(@PathVariable("id") Long categoryId, Model model)
     {
@@ -202,11 +215,12 @@ public class EventController {
       return "index";
     }
 
+    // ================= VIEW EVENT DETAILS =================
     @GetMapping("/events/{id}")
     public String viewEvent(@PathVariable Long id, Model model) {
         Event event = eventService.findById(id);
         if (event == null) {
-            return "redirect:/";
+            return "redirect:/"; // redirect if invalid ID
         }
         model.addAttribute("event", event);
         return "eventDetail";
