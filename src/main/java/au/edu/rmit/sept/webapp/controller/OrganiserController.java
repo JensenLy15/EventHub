@@ -26,9 +26,18 @@ public class OrganiserController {
     this.currentUserService = currentUserService;
   }
 
-  //Temporary hard-coded current organiser Id
-  // private Long currentOrganiserId() {return 5L;}
-  //THOMAS I JUST REMOVE THE HARDCODED ID IN HERE AND USE THE SERVICE INSTEAD PLS CHECK UR TEST CASE
+/**
+   * GET /organiser/dashboard
+   *
+   * Loads the organiser dashboard with the list of upcoming events that belong
+   * to the currently logged-in organiser (determined via CurrentUserService).
+   *
+   * Model attributes:
+   * - "events": List<Event> the organiser's upcoming events
+   *
+   * @param model Spring MVC model for passing data to the view
+   * @return "organiserDashboard" Thymeleaf template
+   */
 
   @GetMapping("/dashboard")
   public String dashboard (Model model) {
@@ -39,6 +48,25 @@ public class OrganiserController {
     return "organiserDashboard";
   }
 
+  /**
+   * GET /organiser/events/{eventId}/rsvps
+   *
+   * Displays the RSVP list for a specific event, but only if the event
+   * is owned by the currently logged-in organiser. If not found (or not owned),
+   * shows an error on the dashboard and reloads the organiser's events.
+   *
+   * Model attributes on success:
+   * - "event": Event details
+   * - "attendees": List<RsvpRepository.AttendeeRow> RSVP rows for the event
+   *
+   * Model attributes on failure:
+   * - "error": String message
+   * - "events": List<Event> organiser's upcoming events (for dashboard)
+   *
+   * @param eventId the ID of the event to view RSVPs for
+   * @param model   Spring MVC model for passing data to the view
+   * @return "organiserRsvps" on success, "organiserDashboard" if not found/unauthorized
+   */
   @GetMapping("/events/{eventId}/rsvps")
   public String eventRsvps(@PathVariable Long eventId, Model model) {
     Long organiserId = currentUserService.getCurrentUserId();
