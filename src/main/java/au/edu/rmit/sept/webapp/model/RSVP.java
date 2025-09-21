@@ -22,6 +22,7 @@ public class RSVP {
     this.createdAt = createdAt;
   }
 
+  // GETTERs and SETTERs 
   public Long getRsvpId() { return rsvpId; }
   public void setRsvpId(Long rsvpId) { this.rsvpId = rsvpId; }
 

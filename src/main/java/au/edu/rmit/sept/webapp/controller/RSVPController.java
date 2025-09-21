@@ -55,8 +55,8 @@ public class RSVPController {
     @PostMapping("/{userId}/event/{eventId}/delete")
     public String deleteRSVP(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         try {
-            rsvpService.deleteRsvp(userId, eventId);
-            Event event = eventService.findById(eventId);
+            rsvpService.deleteRsvp(userId, eventId); // delete the rsvp by eventId and userId 
+            Event event = eventService.findById(eventId); // get the event info (specifically event's name) for success message
             String successMsg = "You have successfully DELETED the RSVP to " + event.getName() + "!";
             redirectAttributes.addFlashAttribute("successMessage", successMsg);
             return "redirect:/";
@@ -66,7 +66,7 @@ public class RSVPController {
         }
     }
 
-    // same as above, but will redirect to my-rsvps page instead 
+    // same as above (deleteRSVP), but will redirect to my-rsvps page instead 
     @PostMapping("/{userId}/rsvp/event/{eventId}/delete")
     public String deleteFromMyRsvps(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
          try {
