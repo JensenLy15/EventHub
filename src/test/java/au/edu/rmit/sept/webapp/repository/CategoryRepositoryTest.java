@@ -131,4 +131,29 @@ public class CategoryRepositoryTest {
     int afterCategoryCount = countCategories();
     assertEquals(beforeCategoryCount - 1, afterCategoryCount);
   }
+
+  @Test 
+  void addNewCategory(){
+    int beforeCount = countCategories();
+
+    repo.addCategory("Sports");
+
+    int afterCount = countCategories();
+    assertEquals(beforeCount + 1, afterCount, "Category count should have increased by 1");
+
+    Long newId = categoryId("Sports");
+    assertNotNull(newId, "Newly inserted category should exist");
+  }
+
+  @Test 
+  void editCategory(){
+    Long meetupCategoryId = categoryId("Meetup");
+    assertNotNull(meetupCategoryId, "Meetup category exists before testing");
+
+    repo.editCategory(meetupCategoryId, "Networking");
+
+    String updatedName = jdbc.queryForObject("SELECT name from categories WHERE category_id = ?", String.class, meetupCategoryId);
+
+    assertEquals("Networking", updatedName, "Category name should be updated");
+  }
 }

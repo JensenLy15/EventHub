@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My RSVPs</title>
+    <link
+      rel="stylesheet"
+      th:href="@{/styles.css(v=${#dates.format(#dates.createNow(),'yyyyMMddHHmmss')})}"
+    />
+  </head>
+  <body>
+    <header th:replace="~{components/header :: header}"></header>
+    <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
+
+    <div class="select-sort">
+    <form th:action="@{/rsvp/{userId}/my-rsvps(userId=${userId})}" method="get" class="sort-form">
+    <label class="label-sort" for="sort">Sort by Date:</label>
+    <select name="sortOrder" class="sort-selection" id="sort" onchange="this.form.submit()">
+        <option th:value="ASC" class="sort-option-1" th:selected="${sortOrder == 'ASC'}">Ascending</option>
+        <option th:value="DESC" class="sort-option-2" th:selected="${sortOrder == 'DESC'}">Descending</option>
+    </select>
+    </form>
+    </div>
+
+    <div th:if="${events.isEmpty()}">
+      <p>You haven't RSVP'd to any events yet.</p>
+    </div>
+    <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
+    <div class="myRsvp">
+      <article
+        th:each="event : ${events}"
+        class="card myRsvp-card"
+        th:if="${!#lists.isEmpty(events)}"
+      >
+        <div class="card-body">
+          <h3 class="card-title" th:text="${event.name}">Event</h3>
+          <div class="card-price">
+            <span
+              th:text="${event.price != null ? '$' + #numbers.formatDecimal(event.price, 1, 'COMMA', 2, 'POINT') : '$0'}"
+              >$0</span
+            >
+          </div>
+          <p
+            class="card-text"
+            th:text="${event.description != null ? event.description : 'Event description goes here...'}"
+          >
+            Body text.
+          </p>
+
+          <!-- Event Categories -->
+          <div
+            class="card-categories"
+            th:if="${!#lists.isEmpty(event.category)}"
+          >
+            <span
+              th:each="catName : ${event.category}"
+              class="chip"
+              th:text="${catName}"
+              >Category</span
+            >
+          </div>
+
+          <!-- Event Details -->
+          <div class="card-meta">
+            <span class="meta-item"
+              >📅
+              <span th:text="${#temporals.format(event.dateTime, 'MMM d')}"
+                >Date</span
+              ></span
+            >
+            <span class="meta-item"
+              >📍 <span th:text="${event.location}">Location</span></span
+            >
+          </div>
+
+          <div class="card-media">
+            <div class="img-placeholder">
+              <div class="placeholder-icon">
+                <img
+                  th:src="@{${event.imageUrl}}"
+                  alt="event image"
+                  class="event-card-image"
+                />
+              </div>
+            </div>
+          </div>
+          <!-- Button for hidden modal -->
+          <button
+            type="button"
+            class="btn btn-dark"
+            th:attr="data-event-id=${event.eventId}"
+            onclick="openEventModal(this)"
+          >
+            View Details
+          </button>
+
+          <!-- Cancel RSVP button -->
+          <form
+            th:action="@{/rsvp/{userId}/rsvp/event/{eventId}/delete(userId=${userId}, eventId=${event.eventId})}"
+            method="post"
+            onsubmit="return confirm('Are you sure you want to cancel this RSVP?');"
+          >
+            <button type="submit" class="btn btn-dark" style="width: 100%">
+              Cancel RSVP
+            </button>
+          </form>
+        </div>
+
+        <!-- Hidden modal template -->
+        <template th:id="'event-template-' + ${event.eventId}">
+          <th:block
+            th:replace="~{components/eventDetail :: eventDetails(event=${event})}"
+          ></th:block>
+        </template>
+      </article>
+    </div>
+    <!-- Global modal -->
+    <div id="eventModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeEventModal()">&times;</span>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+    <footer th:replace="~{components/footer :: footer}"></footer>
+    <script>
+      function openEventModal(button) {
+        const eventId = button.getAttribute("data-event-id");
+        const template = document.getElementById("event-template-" + eventId);
+        if (!template) return;
+        document.getElementById("modal-body").innerHTML = template.innerHTML;
+        document.getElementById("eventModal").style.display = "block";
+      }
+      function closeEventModal() {
+        document.getElementById("eventModal").style.display = "none";
+      }
+      window.onclick = function (event) {
+        const modal = document.getElementById("eventModal");
+        if (event.target === modal) closeEventModal();
+      };
+    </script>
+  </body>
+</html>

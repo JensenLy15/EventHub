@@ -45,6 +45,11 @@ public class Event {
   
   private List<String> categories;
 
+  private String detailedDescription;
+  private String agenda;
+  private String speakers;
+  private String dressCode;
+
   public Event() {
     this.eventId = 0L;
     this.name = "";
@@ -56,6 +61,10 @@ public class Event {
     this.categories = List.of();
     this.price = BigDecimal.ZERO;
     this.imageUrl = "/meetup.jpg";
+    this.detailedDescription ="";
+    this.agenda = "";
+    this.speakers = "";
+    this.dressCode = "";
   }
 
 
@@ -71,8 +80,13 @@ public class Event {
                   this.capacity = capacity;
                   this.price = price;
                   this.imageUrl = "/meetup.jpg";
+                  this.detailedDescription = "";
+                  this.agenda = "";
+                  this.speakers = "";
+                  this.dressCode = "";
                 }
 
+  // ===== Setters =====
   public void setImageUrl(String imageUrl){
     this.imageUrl = imageUrl;
   }
@@ -106,7 +120,20 @@ public class Event {
   public void setPrice(BigDecimal price) {
     this.price = price;
   }
+  public void setDetailedDescription(String detailedDescription) {
+    this.detailedDescription = detailedDescription;
+  }
+  public void setAgenda(String agenda) {
+    this.agenda = agenda;
+  }
+  public void setSpeakers(String speakers) {
+    this.speakers = speakers;
+  }
+  public void setDressCode(String dressCode) {
+    this.dressCode = dressCode;
+  }
   
+  // ===== Getters =====
   public String getImageUrl() { return imageUrl; } 
   public Long getEventId() { return eventId; }
   public String getName() { return name; }
@@ -117,4 +144,8 @@ public class Event {
   public List<String> getCategory() { return categories; }
   public Integer getCapacity() { return capacity; }
   public java.math.BigDecimal getPrice() { return price; }
+  public String getDetailedDescription() { return detailedDescription; }
+  public String getAgenda() { return agenda; }
+  public String getSpeakers() { return speakers; }
+  public String getDressCode() { return dressCode; }
 }

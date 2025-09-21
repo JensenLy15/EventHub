@@ -1,9 +1,15 @@
 <div th:fragment="eventForm">
-  <form th:action="@{${isEdit} ? '/event/edit/' + ${event.eventId} : '/eventForm'}" th:object="${event}" method="post">
+  <form
+    th:action="@{${isEdit} ? '/event/edit/' + ${event.eventId} : '/eventForm'}"
+    th:object="${event}"
+    method="post"
+  >
     <input type="hidden" th:field="*{eventId}" />
     <div class="formFields">
       <div class="formTitle formTitle-center">
-        <h1 th:text="${isEdit} ? 'Edit event' : 'Create a new event'">Create a new event</h1>
+        <h1 th:text="${isEdit} ? 'Edit event' : 'Create a new event'">
+          Create a new event
+        </h1>
       </div>
       <!-- Left column -->
       <div>
@@ -16,10 +22,14 @@
           minlength="2"
           maxlength="30"
         />
-        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error"></span>
+        <span
+          th:if="${#fields.hasErrors('name')}"
+          th:errors="*{name}"
+          class="error"
+        ></span>
       </div>
       <div>
-        <label for="desc">Description</label>
+        <label for="desc">Short Description</label>
         <input
           type="text"
           id="desc"
@@ -28,14 +38,27 @@
           minlength="2"
           maxlength="75"
         />
-        <span th:if="${#fields.hasErrors('desc')}" th:errors="*{desc}" class="error"></span>
+        <span
+          th:if="${#fields.hasErrors('desc')}"
+          th:errors="*{desc}"
+          class="error"
+        ></span>
       </div>
-        <div>
-          <label for="dateTime">Date and Time</label>
-          <input type="datetime-local" id="dateTime" name="dateTime"
-          th:value="${formattedDateTime}"required>
-          <span th:if="${#fields.hasErrors('dateTime')}" th:errors="*{dateTime}" class="error"></span>
-        </div>
+      <div>
+        <label for="dateTime">Date and Time</label>
+        <input
+          type="datetime-local"
+          id="dateTime"
+          name="dateTime"
+          th:value="${formattedDateTime}"
+          required
+        />
+        <span
+          th:if="${#fields.hasErrors('dateTime')}"
+          th:errors="*{dateTime}"
+          class="error"
+        ></span>
+      </div>
       <div>
         <label for="location">Location</label>
         <input
@@ -46,7 +69,11 @@
           minlength="2"
           maxlength="40"
         />
-        <span th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="error"></span>
+        <span
+          th:if="${#fields.hasErrors('location')}"
+          th:errors="*{location}"
+          class="error"
+        ></span>
       </div>
       <!-- Right column -->
       <div>
@@ -84,25 +111,102 @@
       </script>
       <div>
         <label for="capacity">Capacity</label>
-        <input type="number" id="capacity" th:field="*{capacity}"required />
-        <span th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}" class="error"></span>
+        <input type="number" id="capacity" th:field="*{capacity}" required />
+        <span
+          th:if="${#fields.hasErrors('capacity')}"
+          th:errors="*{capacity}"
+          class="error"
+        ></span>
       </div>
       <div>
         <label for="price">Price</label>
-        <input type="number" id="price" th:field="*{price}" step="any" required/>
-        <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error"></span>
+        <input
+          type="number"
+          id="price"
+          th:field="*{price}"
+          step="any"
+          required
+        />
+        <span
+          th:if="${#fields.hasErrors('price')}"
+          th:errors="*{price}"
+          class="error"
+        ></span>
+      </div>
+
+      <!-- NEW FIELDS (used by modal) -->
+      <div style="grid-column: 1 / -1">
+        <label for="detailedDescription">Detailed Description</label>
+        <textarea
+          id="detailedDescription"
+          th:field="*{detailedDescription}"
+          rows="4"
+          maxlength="2000"
+          placeholder="Provide a thorough description of your event"
+        ></textarea>
+        <span
+          th:if="${#fields.hasErrors('detailedDescription')}"
+          th:errors="*{detailedDescription}"
+          class="error"
+        ></span>
+      </div>
+
+      <div style="grid-column: 1 / -1">
+        <label for="agenda">Agenda (one item per line)</label>
+        <textarea
+          id="agenda"
+          th:field="*{agenda}"
+          rows="4"
+          maxlength="2000"
+          placeholder="Insert a new line (pressing enter key) for each item in the agenda"
+        ></textarea>
+        <span
+          th:if="${#fields.hasErrors('agenda')}"
+          th:errors="*{agenda}"
+          class="error"
+        ></span>
+      </div>
+
+      <div>
+        <label for="speakers">Speakers</label>
+        <input
+          id="speakers"
+          type="text"
+          th:field="*{speakers}"
+          maxlength="255"
+          placeholder="Jane Doe; John Smith"
+        />
+        <span
+          th:if="${#fields.hasErrors('speakers')}"
+          th:errors="*{speakers}"
+          class="error"
+        ></span>
+      </div>
+
+      <div>
+        <label for="dressCode">Dress Code</label>
+        <input
+          id="dressCode"
+          type="text"
+          th:field="*{dressCode}"
+          maxlength="120"
+          placeholder="Smart casual"
+        />
+        <span
+          th:if="${#fields.hasErrors('dressCode')}"
+          th:errors="*{dressCode}"
+          class="error"
+        ></span>
       </div>
     </div>
-      <div class="saveEvent">
-        <a th:href="@{/}"> Cancel </a>
-        <button type="submit" th:text="${isEdit} ? 'Update' : 'Save'">Save</button>
-      </div>
+    <div class="saveEvent">
+      <a th:href="@{/}"> Cancel </a>
+      <button type="submit" th:text="${isEdit} ? 'Update' : 'Save'">
+        Save
+      </button>
+    </div>
     <div class="confirmationMsg">
       <p th:if="${confirmation}" th:text="${confirmation}"></p>
     </div>
   </form>
 </div>
-
-
-
-

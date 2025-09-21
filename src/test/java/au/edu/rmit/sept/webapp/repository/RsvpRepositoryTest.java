@@ -1,21 +1,25 @@
 package au.edu.rmit.sept.webapp.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import au.edu.rmit.sept.webapp.model.RSVP;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+
+import au.edu.rmit.sept.webapp.model.Event;
+import au.edu.rmit.sept.webapp.model.RSVP;
 
 
 @SpringBootTest
@@ -42,6 +46,7 @@ public class RsvpRepositoryTest {
       jdbc = new JdbcTemplate(dataSource);
       flyway.clean();
       flyway.migrate();
+
   }
 
   @AfterEach
@@ -125,4 +130,25 @@ public class RsvpRepositoryTest {
       assertTrue(repo.removeRSVPbyEvent(e));
       assertEquals(0, rsvpCount(e));
   }
+
+
+   @Test
+    void findEventsByOrganiser_returnsOnlyFuture_sortedDescending() {
+        long user1 = userIdByEmail("dummy@example.com"); // ID = 1
+        long event1 = eventIdByName("Cloud Career Panel");
+        long event2 = eventIdByName("Hack Night");
+
+        repo.save(new RSVP(3L, user1, event1, LocalDateTime.now().plusHours(1)));
+        repo.save(new RSVP(4L, user1, event2, LocalDateTime.now().plusDays(1)));
+        List<Event> list = repo.findEventsByUserId(user1, "DESC");
+        assertFalse(list.isEmpty());
+
+        // no past ones
+        assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(LocalDateTime.now().minusSeconds(1))));
+
+        // descending order
+        for (int i = 1; i < list.size(); i++) {
+            assertFalse(list.get(i).getDateTime().isAfter(list.get(i - 1).getDateTime()));
+        }
+    }
 }

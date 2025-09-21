@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -64,6 +65,15 @@ public class UserRepository {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
         return count != null && count > 0;
+    }
+
+       public User findUserByEmail(String email) {
+        String sql = "SELECT user_id, name, email, password, role, status FROM users WHERE email = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, MAPPER, email);
+        } catch (EmptyResultDataAccessException e) {
+            return null; // Return null if no user found with this email
+        }
     }
 }
 

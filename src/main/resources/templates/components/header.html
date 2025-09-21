@@ -16,8 +16,28 @@
           </form>
         </div>
         <div class="topbar-right">
-          <a href="#" class="link">Sign up</a>
-          <a href="#" class="link">Log in</a>
+          <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/register}" class="nav-button">Sign up</a>
+            <a th:href="@{/login}" class="nav-button">Log in</a>
+          </div>
+
+       
+
+          <div sec:authorize="isAuthenticated()">
+           <div sec:authorize="hasRole('ORGANISER')">
+              <a th:href="@{/organiser/dashboard}" class="nav-button user" style="margin-right: 1rem;">DASHBOARD</a>
+            </div>
+
+              <div sec:authorize="hasRole('USER')">
+              <a th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps'}" class="nav-button user" style="margin-right: 1rem;">MY RSVP</a>
+            </div>
+          
+            <span class="user-welcome">welcome :</span>
+            <span class="user-welcome" sec:authentication="name">Username</span>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+              <button type="submit" class="nav-button" >Logout</button>
+            </form>
+          </div>
         </div>
       </div>
     </header>

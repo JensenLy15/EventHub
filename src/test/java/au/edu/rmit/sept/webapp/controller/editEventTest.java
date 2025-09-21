@@ -5,47 +5,76 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.EventCategory;
 import au.edu.rmit.sept.webapp.service.CategoryService;
+import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
 
-@WebMvcTest(controllers = EventController.class)
+@SpringBootTest
 @AutoConfigureMockMvc
 public class editEventTest {
+    
     @Autowired
     private MockMvc mvc;
 
     @MockBean
     private EventService eventService;
 
-    @MockBean private RSVPService rsvpService;
-
     @MockBean
     private CategoryService categoryService;
 
+    @MockBean
+    private RSVPService rsvpService;
+    
+    @MockBean
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private WebApplicationContext context;
+
     private final String URL = "/event/edit/{id}";
 
+    @BeforeEach
+    void setUp() {
+        // configure MockMvc with Spring Security support
+        mvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+        
+        // Mock the current user ID for all tests
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
+    }
+
+    /**
+     * test case: Successful event update form submission.
+     * expected result: Redirects to organiser dashboard with success message.
+     */
     @Test
-    void ShowSuccessfulUpdateOfEventForm() throws Exception{
+    void ShowSuccessfulUpdateOfEventForm() throws Exception {
         List<EventCategory> categories = List.of(
             new EventCategory(1L, "Social"),
             new EventCategory(2L, "Career")
@@ -58,7 +87,7 @@ public class editEventTest {
 
         LocalDateTime fixedDateTime = LocalDateTime.of(2030, 9, 22, 12, 0);
 
-        Event event = new Event(
+         Event event = new Event(
             1L, 
             "Test", 
             "test", 
@@ -75,20 +104,26 @@ public class editEventTest {
         when(eventService.updateEvent(any(Event.class), anyList())).thenReturn(1);
 
         mvc.perform(post(URL, event.getEventId())
-            .param("name", "Test2")
-            .param("desc", "For testing purposes")
-            .param("createdByUserId", "5")
-            .param("location", "Vic")
-            .param("capacity", "100")
-            .param("price", "0")   
-            .param("dateTime", "2030-09-22T12:00:00")
-            .param("categoryIds", "1", "2") 
+                .with(user("dummy5@example.com").roles("ORGANISER"))
+                .with(csrf())
+                .param("name", "Test2")
+                .param("desc", "For testing purposes")
+                .param("createdByUserId", "5")
+                .param("location", "Vic")
+                .param("capacity", "100")
+                .param("price", "0")   
+                .param("dateTime", "2030-09-22T12:00:00")
+                .param("categoryIds", "1", "2") 
         )
         .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/"))
+        .andExpect(redirectedUrl("/organiser/dashboard"))
         .andExpect(flash().attribute("successMessage", "Event updated successfully!"));
     }
 
+    /**
+     * test case: Invalid date provided (past date).
+     * expected result: Stay on same page and show "Date must be in the future" error.
+     */
     @Test
     void ShowInvalidFormatMessage() throws Exception {
         List<EventCategory> categories = List.of(
@@ -102,19 +137,25 @@ public class editEventTest {
         when(eventService.isValidDateTime(invalidFixedDateTime)).thenReturn(false);
 
         mvc.perform(post(URL, 1L)
-            .param("name", "Test2")
-            .param("desc", "For testing purposes")
-            .param("createdByUserId", "5")
-            .param("location", "Vic")
-            .param("capacity", "100")
-            .param("price", "0")
-            .param("dateTime", "2020-09-22T12:00:00")
-            .param("categoryIds", "1", "2")
+                .with(user("dummy5@example.com").roles("ORGANISER"))
+                .with(csrf())
+                .param("name", "Test2")
+                .param("desc", "For testing purposes")
+                .param("createdByUserId", "5")
+                .param("location", "Vic")
+                .param("capacity", "100")
+                .param("price", "0")
+                .param("dateTime", "2020-09-22T12:00:00")
+                .param("categoryIds", "1", "2")
         )
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Date must be in the future")));
     }
 
+    /**
+     * test case: Missing required field (name is blank).
+     * expected result: Show "Name is required" validation error.
+     */
     @Test
     void ShowMissingRequiredFieldPrompt() throws Exception {
         List<EventCategory> categories = List.of(
@@ -125,17 +166,18 @@ public class editEventTest {
         when(categoryService.getAllCategories()).thenReturn(categories);
 
         mvc.perform(post(URL, 1L)
-            .param("name", "")
-            .param("desc", "For testing purposes")
-            .param("createdByUserId", "5")
-            .param("location", "Vic")
-            .param("capacity", "100")
-            .param("price", "0")
-            .param("dateTime", "2030-09-22T12:00:00")
-            .param("categoryIds", "1", "2")
+                .with(user("dummy5@example.com").roles("ORGANISER"))
+                .with(csrf())
+                .param("name", "")
+                .param("desc", "For testing purposes")
+                .param("createdByUserId", "5")
+                .param("location", "Vic")
+                .param("capacity", "100")
+                .param("price", "0")
+                .param("dateTime", "2030-09-22T12:00:00")
+                .param("categoryIds", "1", "2")
         )
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Name is required")));
     }
-
 }

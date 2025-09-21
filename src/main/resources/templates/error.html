@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+>
+  <head>
+     <meta charset="utf-8">
+    <!-- <title > event hub</title> -->
+     <title th:text="'Error ' + ${statusCode} + ' - EventHub'">Error - EventHub</title>
+     <link rel="stylesheet" th:href="@{/styles.css}" />
+  </head>
+  <body>
+    <section class="page">
+      <div class="error-container" style="text-align: center; padding: 2rem 0;">
+        
+        <!-- Error Code Display -->
+        <div class="error-code" style="font-size: 6rem; font-weight: bold; color: #dc3545; margin-bottom: 1rem;">
+          <span th:text="${statusCode}"></span>
+        </div>
+
+        <!-- Error Title -->
+        <h1 class="error-title" style="font-size: 2rem; margin-bottom: 1rem; color: #333;">
+          <span th:text="${title}"></span>
+        </h1>
+
+        <!-- Error Message -->
+        <p class="error-message" style="font-size: 1.2rem; margin-bottom: 1.5rem; color: #666;">
+          <span th:text="${message}"></span>
+        </p>
+
+        <!-- Error Description -->
+        <div th:if="${description != null and !description.isEmpty()}" class="error-description" style="margin-bottom: 2rem;">
+          <p style="color: #888; font-size: 1rem;" th:text="${description}">
+            Additional error details
+          </p>
+        </div>
+
+        <!-- Request URI (if available) -->
+        <div th:if="${requestUri != null and !requestUri.isEmpty()}" class="error-uri" style="margin-bottom: 2rem;">
+          <p style="color: #999; font-size: 0.9rem; font-family: monospace;">
+            Requested URL: <span th:text="${requestUri}"></span>
+          </p>
+        </div>
+
+
+        <!-- Action Buttons -->
+        <div class="error-actions" style="margin-top: 2rem;">
+          <a href="javascript:history.back()" class="btn btn-light" style="margin-right: 1rem;">
+            ← Go Back
+          </a>
+          <a th:href="@{/}" class="btn btn-dark">
+            🏠 Home Page
+          </a>
+        </div>
+
+
+      </div>
+    </section>
+  </body>
+</html>

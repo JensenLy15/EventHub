@@ -36,4 +36,14 @@ public class CategoryRepository  {
         String sql = "DELETE FROM categories WHERE category_id = ?";
         jdbcTemplate.update(sql, categoryId);
     }
+
+    public void addCategory(String name){
+        String sql = "INSERT INTO categories (name) VALUES (?)";
+        jdbcTemplate.update(sql, name);
+    }
+
+    public void editCategory(Long categoryId, String newName){
+        String sql = "UPDATE categories SET name = ? WHERE category_id = ?";
+        jdbcTemplate.update(sql, newName, categoryId);
+    }
 }

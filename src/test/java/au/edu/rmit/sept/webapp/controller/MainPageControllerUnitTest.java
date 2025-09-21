@@ -5,6 +5,7 @@ import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.EventCategory;
 import au.edu.rmit.sept.webapp.repository.RsvpRepository;
 import au.edu.rmit.sept.webapp.service.CategoryService;
+import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,9 +31,10 @@ import static org.assertj.core.api.Assertions.tuple;
  * - Mock dependencies with Mockito
  */
 public class MainPageControllerUnitTest {
-  private EventService eventService;
+    private EventService eventService;
     private RsvpRepository rsvpRepository;
     private CategoryService categoryService;
+    private CurrentUserService currentUserService;
     private MainPageController controller;
 
     @BeforeEach
@@ -40,7 +42,8 @@ public class MainPageControllerUnitTest {
         eventService = Mockito.mock(EventService.class);
         rsvpRepository = Mockito.mock(RsvpRepository.class);
         categoryService = Mockito.mock(CategoryService.class);
-        controller = new MainPageController(eventService, rsvpRepository, categoryService);
+        currentUserService = Mockito.mock(CurrentUserService.class);
+        controller = new MainPageController(eventService, rsvpRepository, categoryService, currentUserService);
     }
 
     // --- helpers ---
@@ -52,13 +55,13 @@ public class MainPageControllerUnitTest {
     }
 
     private static EventCategory cat(long id, String name) {
-      return new EventCategory(id, name);
-  }
+        return new EventCategory(id, name);
+    }
 
     /**
      * Scenario: GET with no category filter
      * Expects controller gets upcoming events twice: build RSVP map and display the list
-     * Model contains: upcoming events, rsvpStatusMap, categories, categoryId = null, currentuserId=5
+     * Model contains: upcoming events, rsvpStatusMap, categories, categoryId = null, currentUserId=5
      */
     @Test
     void mainpage_withoutCategory_showsUpcomingEvents_andRsvpMap() {
@@ -67,6 +70,7 @@ public class MainPageControllerUnitTest {
         var upcoming = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
         when(eventService.getUpcomingEvents()).thenReturn(upcoming); // used twice by controller
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(10L, "Tech"), cat(20L, "Networking")));
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
 
@@ -92,9 +96,10 @@ public class MainPageControllerUnitTest {
         // Interactions
         verify(eventService, times(2)).getUpcomingEvents();
         verify(categoryService).getAllCategories();
+        verify(currentUserService).getCurrentUserId();
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
-        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository);
+        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
     }
 
     /**
@@ -113,6 +118,7 @@ public class MainPageControllerUnitTest {
         when(eventService.getUpcomingEvents()).thenReturn(upcomingForRsvp);
         when(eventService.filterEventsByCategory(8L)).thenReturn(filtered);
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(8L, "Tech")));
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
 
@@ -130,9 +136,10 @@ public class MainPageControllerUnitTest {
         verify(eventService).getUpcomingEvents(); // for RSVP map
         verify(eventService).filterEventsByCategory(8L); // for displayed list
         verify(categoryService).getAllCategories();
+        verify(currentUserService).getCurrentUserId();
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
-        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository);
+        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
     }
 
     /**
@@ -148,6 +155,7 @@ public class MainPageControllerUnitTest {
 
         when(eventService.getUpcomingEvents()).thenReturn(List.of());
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(99L, "All")));
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
 
         String view = controller.mainpage(null, model);
 
@@ -170,7 +178,8 @@ public class MainPageControllerUnitTest {
         // getUpcomingEvents called twice (RSVP + display path)
         verify(eventService, times(2)).getUpcomingEvents();
         verify(categoryService).getAllCategories();
+        verify(currentUserService).getCurrentUserId();
         verify(rsvpRepository, never()).checkUserAlreadyRsvped(anyLong(), anyLong());
-        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository);
+        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
     }
 }

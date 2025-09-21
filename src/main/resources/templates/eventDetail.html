@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:replace="~{components/layout :: layout(~{::title}, ~{::section})}"
+>
+  <head>
+    <title th:text="${event != null ? event.name : 'Event'}">Event</title>
+  </head>
+  <body>
+    <section class="page">
+      <th:block
+        th:replace="~{components/eventDetail :: eventDetails(event=${event})}"
+      ></th:block>
+    </section>
+  </body>
+</html>
