@@ -19,13 +19,14 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         
+        //this one get user role
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         
         String redirectUrl = "/"; // default redirect
 
-        System.out.println("=== Authentication Success Handler ===");
-        System.out.println("Username: " + authentication.getName());
-        System.out.println("Authorities: ");
+        // System.out.println("=== Authentication Success Handler ===");
+        // System.out.println("Username: " + authentication.getName());
+        // System.out.println("Authorities: ");
         
         // check user roles and determine redirect URL correspoding
         for (GrantedAuthority authority : authorities) {
@@ -33,7 +34,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
             System.out.println("Checking role: " + role);
 
-            
+            //this one is redirect them to where they need to go
             if (role.equals("ROLE_ORGANISER")) {
                 redirectUrl = "/organiser/dashboard";
                 break;

@@ -20,6 +20,11 @@ public class CustomErrorController implements ErrorController {
         String title = "An Error Occurred";
         String message = "Something went wrong";
 
+        // Map specific status codes to custom messages
+        //the reason why we do this is beceause we have role base access control
+        //so if a user try to access a page that they dont have permission to access
+        // and it make the ui look better then the defaul and have option to go back homm
+
         if (status != null) {
             int code = Integer.parseInt(status.toString());
             statusCode = String.valueOf(code);

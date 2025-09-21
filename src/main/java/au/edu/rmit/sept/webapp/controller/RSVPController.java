@@ -28,6 +28,7 @@ public class RSVPController {
         this.eventService = eventService;
     }
 
+    // submit the rsvp, will redirect to mainpage regardless, but will have different messages depend on if it fails or successes 
     @PostMapping("/{userId}/event/{eventId}/confirm")
     public String rsvp(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         try {
@@ -45,10 +46,12 @@ public class RSVPController {
             }
             return "redirect:/";
         } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something wrong happened!!!");
             return "redirect:/";
         }
     }
 
+    // delete the rsvp from the database then redirect to mainpage, will send a message afterwards
     @PostMapping("/{userId}/event/{eventId}/delete")
     public String deleteRSVP(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         try {
@@ -58,10 +61,12 @@ public class RSVPController {
             redirectAttributes.addFlashAttribute("successMessage", successMsg);
             return "redirect:/";
         } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something wrong happened!!!");
             return "redirect:/";
         }
     }
 
+    // same as above, but will redirect to my-rsvps page instead 
     @PostMapping("/{userId}/rsvp/event/{eventId}/delete")
     public String deleteFromMyRsvps(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
          try {
@@ -71,17 +76,16 @@ public class RSVPController {
             redirectAttributes.addFlashAttribute("successMessage", successMsg);
             return "redirect:/rsvp/" + userId + "/my-rsvps";
         } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something wrong happened!!!");
             return "redirect:/rsvp/" + userId + "/my-rsvps";
         }
     }
 
-
+    // load the rsvp submission form 
     @GetMapping("/{userId}/event/{eventId}")
     public String rsvpConfirmPage(@PathVariable Long userId,
                                 @PathVariable Long eventId,
                                 Model model) {
-
-        //TO DO: redirects to main page if already RSVPed with error message, also add extra test case for this. 
 
         Event event = eventService.findById(eventId);
         model.addAttribute("event", event);
@@ -99,9 +103,10 @@ public class RSVPController {
         return "rsvpPage"; 
     }
 
+    // load my-rsvps page with rsvped events, userId, sortOrder and currentUserId  
     @GetMapping("/{userId}/my-rsvps")
         public String myRsvpsPage(@PathVariable Long userId, @RequestParam(defaultValue = "ASC") String sortOrder, Model model) {
-        List<Event> events = rsvpService.getRsvpedEventsByUser(userId, sortOrder);
+        List<Event> events = rsvpService.getRsvpedEventsByUser(userId, sortOrder); //get the list of rsvped events by userId
         model.addAttribute("events", events);
         model.addAttribute("userId", userId);
         model.addAttribute("sortOrder", sortOrder);
