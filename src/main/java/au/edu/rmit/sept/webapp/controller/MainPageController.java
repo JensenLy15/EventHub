@@ -34,7 +34,19 @@ public class MainPageController {
 
     this.currentUserService = currentUserService;
   }
-
+  /**
+     * Handles requests to the main landing page ("/").
+     *
+     * - Retrieves upcoming events (optionally filtered by category if a categoryId is passed).
+     * - Retrieves the currently logged-in user's ID.
+     * - Builds a map of RSVP statuses for the current user across all events.
+     * - Fetches all categories for display in filter options.
+     * - Adds events, categories, RSVP statuses, and selected category to the model.
+     *
+     * @param categoryId Optional category filter parameter (null = show all events).
+     * @param model      Spring model to pass data to the view.
+     * @return the "index" view for rendering the main page.
+     */
   @GetMapping("/")
   public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model ) {
     List<Event> events = eventService.getUpcomingEvents();
@@ -47,13 +59,13 @@ Long currentUserId = currentUserService.getCurrentUserId();
         boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
         rsvpStatusMap.put(event.getEventId(), hasRsvped);
     }
-
+    // Apply category filter if provided
     if (categoryId != null) {
         events = eventService.filterEventsByCategory(categoryId);
     } else {
         events = eventService.getUpcomingEvents();
     }
-
+    // Get all categories for filter options
     List<EventCategory> categories = categoryService.getAllCategories();
     model.addAttribute("events", events);
     model.addAttribute("currentUserId", currentUserId);
