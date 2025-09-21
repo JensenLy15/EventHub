@@ -18,8 +18,8 @@
             Find events that match your interests and create lasting memories.
           </p>
           <div class="hero-cta">
-            <a href="#" class="btn btn-light">Sign in</a>
-            <a href="#" class="btn btn-dark">Register</a>
+            <a sec:authorize="!isAuthenticated()"  th:href="@{/login}"class="btn btn-light">Sign in</a>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/register}"class="btn btn-dark">Register</a>
           </div>
         </div>
       </div>
