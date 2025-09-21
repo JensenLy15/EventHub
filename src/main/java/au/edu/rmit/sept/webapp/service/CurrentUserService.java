@@ -15,6 +15,8 @@ public class CurrentUserService {
         this.userService = userService;
     }
 
+
+    //from the current logged in user, get their user id
     public Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
@@ -32,24 +34,4 @@ public class CurrentUserService {
         return null;
     }
 
-    public String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //if the user dont login, then authentication.getName(); returns "anonymousUser"
-
-        
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
-            return authentication.getName();
-        }
-        
-        //if no user is logged in, we return null
-        return null;
-    }
-
-    public User getCurrentUser() {
-        String email = getCurrentUserEmail();
-        if (email != null) {
-            return userService.getUserByEmail(email);
-        }
-        return null;
-    }
 }

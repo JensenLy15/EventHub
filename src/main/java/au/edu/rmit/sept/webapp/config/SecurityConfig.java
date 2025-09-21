@@ -28,14 +28,13 @@ public class SecurityConfig {
         //allow certain pages to be accessed by anyone and other pages to be accessed only by logged in users
         http
             .authorizeHttpRequests((requests) -> requests
-                // .requestMatchers("/", "/home", "/styles.css", "/favicon.svg", "/static/**", "/error", "/h2-console/**", "/*.jpg", "/*.jpeg").permitAll() // Public pages
                 .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/*.css", "/*.js", "/*.jpg", "/*.jpeg", "/*.png", "/*.gif", "/*.ico",  "/*.svg", "/static/**", "/error").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
 
                 .requestMatchers("/eventPage/**").authenticated() // Protected pages
-                // .requestMatchers("/organiser/**").authenticated()
                 .requestMatchers("/organiser/**").hasAnyRole("ORGANISER", "ADMIN")// only organiser and admin can access organiser pages
 
+                //only admin can access user management pages
                 .requestMatchers("/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -62,6 +61,9 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+
+    //this we create some dummy users for this sprijnt to show the role base access control
+    //next sprint we do no more dummy make it proper wth sign up and hash password and store in db
      @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.builder()
