@@ -22,10 +22,9 @@
     </form>
     </div>
 
-    <div th:if="${events.isEmpty()}">
+    <div class="no-rsvps" th:if="${events.isEmpty()}">
       <p>You haven't RSVP'd to any events yet.</p>
     </div>
-    <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
     <div class="myRsvp">
       <article
         th:each="event : ${events}"
