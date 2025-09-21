@@ -20,6 +20,9 @@ VALUES ('Dummy4', 'dummy4@example.com', 'password123', 'student', 'active');
 INSERT INTO users (name, email, password, role, status)
 VALUES ('Dummy5', 'dummy5@example.com', 'password123', 'organiser', 'active');
 
+INSERT INTO users (name, email, password, role, status)
+VALUES ('Dummy7', 'dummy7@example.com', 'password123', 'admin', 'active');
+
 -- Past event (won't show in "upcoming")
 INSERT INTO events (name, description, created_by_user_id, date_time, location, capacity, price)
 VALUES ('Welcome Back BBQ', 'Kick off social', 5, DATEADD('DAY', -10, CURRENT_TIMESTAMP), 'Alumni Courtyard', 200, 0.00);
