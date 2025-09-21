@@ -27,4 +27,21 @@ Communication tool (Teams): https://teams.microsoft.com/l/channel/19%3ApMxt98Mcv
 
 The DoD is in the github projects board labeled as "definition of done".
 
+==================== LOG-IN CREDENTIALS ===================
+below are the log-in information for student, and club organiser:
+
+======== STUDENT ROLE ========
+Username: "dummy@example.com"
+Password: "password123"
+
+==============================
+
+========= ORGANISER ROLE =======
+Username: "dummy5@example.com"
+Password: "password123"
+
+==============================
+
+
+
 See [Instructions](INSTRUCTIONS.md)
