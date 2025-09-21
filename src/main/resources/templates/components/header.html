@@ -30,8 +30,11 @@
 
 
             <!-- my event is latter to see the list of event that user has rsvp to -->
+              <!-- <div sec:authorize="hasRole('USER')">
+              <a th:href="@{/myEvent}" class="link" style="margin-right: 1rem;">MY RSVP</a>
+            </div> -->
               <div sec:authorize="hasRole('USER')">
-              <a th:href="@{/myEvent}" class="link" style="margin-right: 1rem;">DASHBOARD</a>
+              <a th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps'}" class="link" style="margin-right: 1rem;">MY RSVP</a>
             </div>
 
             <span class="user-welcome" sec:authentication="name">Username</span>
