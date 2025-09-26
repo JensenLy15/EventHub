@@ -39,7 +39,7 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
     }
-    public Map <String, Object> getUser(Long userId) {
+    public Map <String, Object> findUserProfileMapById(Long userId) {
       return userRepository.findUserProfileMapById(userId);
     }
 

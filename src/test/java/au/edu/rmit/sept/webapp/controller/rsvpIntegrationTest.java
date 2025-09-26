@@ -26,6 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.Map;
+import java.util.HashMap;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.hamcrest.Matchers.containsString;
+
+import au.edu.rmit.sept.webapp.service.UserService;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
@@ -40,6 +46,9 @@ public class rsvpIntegrationTest {
     @MockBean 
     private EventService eventService;
     
+    @MockBean
+    private UserService userService;
+
     @MockBean 
     private RSVPService rsvpService;
 
@@ -240,4 +249,63 @@ public class rsvpIntegrationTest {
         verify(rsvpService).getRsvpedEventsByUser(2L, "ASC");
 
     }
+    @Test
+void Should_RenderProfileTab_WithUserProfile() throws Exception {
+    // Profile map returned to the view
+    Map<String,Object> profile = new HashMap<>();
+    profile.put("name", "Dummy2");
+    profile.put("email", "dummy2@example.com");
+    profile.put("gender", "prefer_not_to_say");
+    when(userService.findUserProfileMapById(2L)).thenReturn(profile);
+
+    // No RSVPs needed for this assertion path
+    when(rsvpService.getRsvpedEventsByUser(2L, "ASC")).thenReturn(List.of());
+
+    mvc.perform(get("/rsvp/2/my-rsvps")
+            .param("tab", "profile")
+            .param("sortOrder", "ASC")
+            .with(user("dummy2@example.com").roles("USER")))
+       .andExpect(status().isOk())
+       .andExpect(view().name("myRsvps"))
+       .andExpect(model().attributeExists("userProfile", "activeTab"))
+       .andExpect(model().attribute("activeTab", "profile"))
+       // Spot-check content rendered from the profile fragment
+       .andExpect(content().string(containsString("My Profile")))
+       .andExpect(content().string(containsString("dummy2@example.com")));
+
+    verify(userService).findUserProfileMapById(2L);
+    verify(rsvpService).getRsvpedEventsByUser(2L, "ASC");
+}
+
+@Test
+void Should_DefaultToRsvpsTab_When_TabParamMissing() throws Exception {
+    when(rsvpService.getRsvpedEventsByUser(2L, "ASC")).thenReturn(List.of());
+    when(userService.findUserProfileMapById(2L)).thenReturn(new HashMap<>());
+
+    mvc.perform(get("/rsvp/2/my-rsvps")
+            .with(user("dummy2@example.com").roles("USER")))
+       .andExpect(status().isOk())
+       .andExpect(view().name("myRsvps"))
+       .andExpect(model().attribute("activeTab", "rsvps"));
+
+    verify(userService).findUserProfileMapById(2L);
+    verify(rsvpService).getRsvpedEventsByUser(2L, "ASC");
+}
+
+@Test
+void Should_RequestDescendingSort_When_SortOrderDESC() throws Exception {
+    when(rsvpService.getRsvpedEventsByUser(2L, "DESC")).thenReturn(List.of());
+    when(userService.findUserProfileMapById(2L)).thenReturn(new HashMap<>());
+
+    mvc.perform(get("/rsvp/2/my-rsvps")
+            .param("sortOrder", "DESC")
+            .with(user("dummy2@example.com").roles("USER")))
+       .andExpect(status().isOk())
+       .andExpect(view().name("myRsvps"))
+       .andExpect(model().attribute("userId", 2L))
+       .andExpect(model().attribute("sortOrder", "DESC"));
+
+    verify(userService).findUserProfileMapById(2L);
+    verify(rsvpService).getRsvpedEventsByUser(2L, "DESC");
+}
 }
