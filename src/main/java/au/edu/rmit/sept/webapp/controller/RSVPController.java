@@ -15,17 +15,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
+import au.edu.rmit.sept.webapp.service.UserService;
 
 @Controller
 @RequestMapping("/rsvp")
 public class RSVPController {
 
     private final RSVPService rsvpService;
+    private final UserService userService;
     private final EventService eventService;
 
-    public RSVPController(RSVPService rsvpService, EventService eventService) {
+    public RSVPController(RSVPService rsvpService, EventService eventService, UserService userService) {
         this.rsvpService = rsvpService;
         this.eventService = eventService;
+        this.userService = userService;
     }
 
     // submit the rsvp, will redirect to mainpage regardless, but will have different messages depend on if it fails or successes 
@@ -105,12 +108,18 @@ public class RSVPController {
 
     // load my-rsvps page with rsvped events, userId, sortOrder and currentUserId  
     @GetMapping("/{userId}/my-rsvps")
-        public String myRsvpsPage(@PathVariable Long userId, @RequestParam(defaultValue = "ASC") String sortOrder, Model model) {
+        public String myRsvpsPage(@PathVariable Long userId, 
+                                  @RequestParam(defaultValue = "ASC") String sortOrder,
+                                  @RequestParam(name = "tab", defaultValue = "rsvps") String tab,
+                                  Model model) {
         List<Event> events = rsvpService.getRsvpedEventsByUser(userId, sortOrder); //get the list of rsvped events by userId
+        var profile = userService.findUserProfileMapById(userId);
         model.addAttribute("events", events);
+        model.addAttribute("userProfile", profile);
         model.addAttribute("userId", userId);
         model.addAttribute("sortOrder", sortOrder);
         model.addAttribute("currentUserId", userId); 
+        model.addAttribute("activeTab", "profile".equalsIgnoreCase(tab) ? "profile" : "rsvps");
         return "myRsvps"; 
     }
 }

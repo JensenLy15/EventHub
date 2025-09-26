@@ -269,7 +269,6 @@ void Should_RenderProfileTab_WithUserProfile() throws Exception {
        .andExpect(view().name("myRsvps"))
        .andExpect(model().attributeExists("userProfile", "activeTab"))
        .andExpect(model().attribute("activeTab", "profile"))
-       // Spot-check content rendered from the profile fragment
        .andExpect(content().string(containsString("My Profile")))
        .andExpect(content().string(containsString("dummy2@example.com")));
 
