@@ -1,0 +1,75 @@
+<!-- templates/components/profile.html -->
+<div th:fragment="profile(profile)">
+  <div class="profile-card card">
+    <div class="card-body">
+      <div
+        class="profile-header"
+        style="display: flex; gap: 1rem; align-items: center"
+      >
+        <div
+          class="avatar"
+          style="
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+          "
+        >
+          <img
+            th:if="${profile['avatar_url'] != null}"
+            th:src="${profile['avatar_url']}"
+            alt="avatar"
+            style="width: 100%; height: 100%; object-fit: cover"
+          />
+          <img
+            th:if="${profile['avatar_url'] == null}"
+            th:src="@{/avatars/default-avatar.png}"
+            alt="avatar"
+            style="width: 100%; height: 100%; object-fit: cover"
+          />
+        </div>
+
+        <div>
+          <h2
+            class="card-title"
+            th:text="${#strings.isEmpty(profile['display_name']) ? profile['name'] : profile['display_name']}"
+          >
+            User Name
+          </h2>
+          <p class="muted" th:text="${profile['email']}">email@example.com</p>
+          <p class="muted">
+            <span th:switch="${profile['gender']}">
+              <span th:case="'male'">Male</span>
+              <span th:case="'female'">Female</span>
+              <span th:case="'non_binary'">Non-binary</span>
+              <span th:case="*">Prefer not to say</span>
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div class="profile-bio" style="margin-top: 1rem">
+        <h3>Bio</h3>
+        <p
+          th:text="${#strings.isEmpty(profile['bio']) ? 'No bio yet.' : profile['bio']}"
+        >
+          No bio yet.
+        </p>
+      </div>
+
+      <div class="profile-actions" style="margin-top: 1rem">
+        <a class="btn btn-blue" th:href="@{/profile/edit}">Edit Profile</a>
+      </div>
+
+      <div class="muted" style="margin-top: 0.75rem">
+        <small
+          >Last updated:
+          <span
+            th:text="${profile['updated_at'] != null ? #dates.format(profile['updated_at'], 'yyyy-MM-dd HH:mm') : '—'}"
+            >—</span
+          >
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
