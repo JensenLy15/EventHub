@@ -23,7 +23,7 @@
           />
           <img
             th:if="${profile['avatar_url'] == null}"
-            th:src="@{/avatars/default-avatar.png}"
+            th:src="@{/default-avatar.png}"
             alt="avatar"
             style="width: 100%; height: 100%; object-fit: cover"
           />
@@ -41,7 +41,7 @@
             <span th:switch="${profile['gender']}">
               <span th:case="'male'">Male</span>
               <span th:case="'female'">Female</span>
-              <span th:case="'non_binary'">Non-binary</span>
+              <span th:case="'nonbinary'">Non-binary</span>
               <span th:case="'other'">Other</span>
               <span th:case="*">Prefer not to say</span>
             </span>
@@ -59,7 +59,9 @@
       </div>
 
       <div class="profile-actions" style="margin-top: 1rem">
-        <a class="btn btn-blue" th:href="@{/profile/edit}">Edit Profile</a>
+        <button type="button" class="btn btn-blue" onclick="openProfileModal()">
+          Edit Profile
+        </button>
       </div>
 
       <div class="muted" style="margin-top: 0.75rem">

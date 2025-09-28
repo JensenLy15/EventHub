@@ -11,8 +11,99 @@
   <body>
     <header th:replace="~{components/header :: header}"></header>
 
+    <!-- Centered toast popup -->
+    <div
+      id="confirmation-overlay"
+      th:if="${successMessage != null or errorMessage != null}"
+    >
+      <div
+        id="confirmation"
+        class="confirmation"
+        th:classappend="${successMessage} ? ' success' : ' error'"
+        role="alertdialog"
+        aria-modal="true"
+        tabindex="-1"
+        th:text="${successMessage != null ? successMessage : errorMessage}"
+      ></div>
+    </div>
+
+    <style>
+      /* Backdrop */
+      #confirmation-overlay {
+        position: fixed;
+        inset: 0; /* top:0; right:0; bottom:0; left:0 */
+        display: grid;
+        place-items: center; /* perfect centering */
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      #confirmation-overlay.show {
+        opacity: 1;
+      }
+
+      /* Popup box */
+      .confirmation {
+        max-width: 520px;
+        width: min(92vw, 520px);
+        padding: 16px 18px;
+        border-radius: 12px;
+        color: #fff;
+        text-align: center;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        transform: scale(0.96);
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+      #confirmation-overlay.show .confirmation {
+        transform: scale(1);
+        opacity: 1;
+      }
+      .confirmation.success {
+        background: #16a34a;
+      } /* green */
+      .confirmation.error {
+        background: #dc2626;
+      } /* red */
+    </style>
+
+    <script th:inline="javascript">
+      (function () {
+        var overlay = document.getElementById("confirmation-overlay");
+        if (!overlay) return;
+
+        // animate in
+        requestAnimationFrame(function () {
+          overlay.classList.add("show");
+        });
+
+        // focus for a11y
+        var confirmation = document.getElementById("confirmation");
+        if (confirmation) confirmation.focus();
+
+        // auto-dismiss after 4s
+        var timer = setTimeout(dismissConfirmation, 4000);
+
+        // click backdrop to close
+        overlay.addEventListener("click", function (e) {
+          if (e.target === overlay) dismissConfirmation();
+        });
+
+        // expose for manual close if add a button later
+        function dismissConfirmation() {
+          clearTimeout(timer);
+          overlay.classList.remove("show");
+          setTimeout(function () {
+            overlay.remove();
+          }, 200);
+        }
+        window.dismissConfirmation = dismissConfirmation;
+      })();
+    </script>
+
     <!-- Tabs header -->
-    <div class="tabs">
+    <div class="tabs" style="display: flex; gap: 0.5rem; margin: 1rem 0">
       <button
         type="button"
         class="tab-btn"
@@ -22,9 +113,8 @@
         My RSVPs
       </button>
       <button
-        type="button"
         class="tab-btn"
-        th:classappend="${(activeTab == 'rsvps') or (activeTab == null)} ? ' active' : ''"
+        th:classappend="${(activeTab == 'profile') ? ' active' : ''}"
         onclick="switchTab('profile')"
       >
         My Profile
@@ -32,151 +122,178 @@
     </div>
 
     <!-- RSVP Tab -->
-    <section id ="tab-rsvps"
-              th:style="${activeTab} == 'profile' ? 'display:none' : 'display:block'">
-    <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
+    <section
+      id="tab-rsvps"
+      th:style="${activeTab == 'profile'} ? 'display:none' : 'display:block'"
+    >
+      <h1 class="myRsvp-title">List of RSVP'ed Events</h1>
 
-    <div class="select-sort">
-      <form
-        th:action="@{/rsvp/{userId}/my-rsvps(userId=${userId})}"
-        method="get"
-        class="sort-form"
-      >
-        <label class="label-sort" for="sort">Sort by Date:</label>
-        <select
-          name="sortOrder"
-          class="sort-selection"
-          id="sort"
-          onchange="this.form.submit()"
+      <div class="select-sort">
+        <form
+          th:if="${userId != null}"
+          th:action="@{/rsvp/{userId}/my-rsvps(userId=${userId})}"
+          method="get"
+          class="sort-form"
         >
-          <option
-            th:value="ASC"
-            class="sort-option-1"
-            th:selected="${sortOrder == 'ASC'}"
+          <label class="label-sort" for="sort">Sort by Date:</label>
+          <select
+            name="sortOrder"
+            class="sort-selection"
+            id="sort"
+            onchange="this.form.submit()"
           >
-            Ascending
-          </option>
-          <option
-            th:value="DESC"
-            class="sort-option-2"
-            th:selected="${sortOrder == 'DESC'}"
-          >
-            Descending
-          </option>
-        </select>
-        <input type="hidden" name="tab" value="rsvps"/>
-      </form>
-    </div>
-
-    <div class="no-rsvps" th:if="${events.isEmpty()}">
-      <p>You haven't RSVP'd to any events yet.</p>
-    </div>
-    <div class="myRsvp">
-      <article
-        th:each="event : ${events}"
-        class="card myRsvp-card"
-        th:if="${!#lists.isEmpty(events)}"
-      >
-        <div class="card-body">
-          <h3 class="card-title" th:text="${event.name}">Event</h3>
-          <div class="card-price">
-            <span
-              th:text="${event.price != null ? '$' + #numbers.formatDecimal(event.price, 1, 'COMMA', 2, 'POINT') : '$0'}"
-              >$0</span
+            <option
+              th:value="ASC"
+              class="sort-option-1"
+              th:selected="${sortOrder == 'ASC'}"
             >
-          </div>
-          <p
-            class="card-text"
-            th:text="${event.description != null ? event.description : 'Event description goes here...'}"
-          >
-            Body text.
-          </p>
-
-          <!-- Event Categories -->
-          <div
-            class="card-categories"
-            th:if="${!#lists.isEmpty(event.category)}"
-          >
-            <span
-              th:each="catName : ${event.category}"
-              class="chip"
-              th:text="${catName}"
-              >Category</span
+              Ascending
+            </option>
+            <option
+              th:value="DESC"
+              class="sort-option-2"
+              th:selected="${sortOrder == 'DESC'}"
             >
-          </div>
+              Descending
+            </option>
+          </select>
+          <input type="hidden" name="tab" value="rsvps" />
+        </form>
+      </div>
 
-          <!-- Event Details -->
-          <div class="card-meta">
-            <span class="meta-item"
-              >📅
-              <span th:text="${#temporals.format(event.dateTime, 'MMM d')}"
-                >Date</span
-              ></span
+      <div class="no-rsvps" th:if="${events == null or events.isEmpty()}">
+        <p>You haven't RSVP'd to any events yet.</p>
+      </div>
+      <div class="myRsvp" th:if="${events != null and !events.isEmpty()}">
+        <article th:each="event : ${events}" class="card myRsvp-card">
+          <div class="card-body">
+            <h3 class="card-title" th:text="${event.name}">Event</h3>
+            <div class="card-price">
+              <span
+                th:text="${event.price != null ? '$' + #numbers.formatDecimal(event.price, 1, 2) : '$0'}"
+                >$0</span
+              >
+            </div>
+            <p
+              class="card-text"
+              th:text="${event.desc != null ? event.desc : 'Event description goes here...'}"
             >
-            <span class="meta-item"
-              >📍 <span th:text="${event.location}">Location</span></span
-            >
-          </div>
+              Body text.
+            </p>
 
-          <div class="card-media">
-            <div class="img-placeholder">
-              <div class="placeholder-icon">
-                <img
-                  th:src="@{${event.imageUrl}}"
-                  alt="event image"
-                  class="event-card-image"
-                />
+            <!-- Event Categories -->
+            <div
+              class="card-categories"
+              th:if="${event.category != null and !#lists.isEmpty(event.category)}"
+            >
+              <span
+                th:each="catName : ${event.category}"
+                class="chip"
+                th:text="${catName}"
+                >Category</span
+              >
+            </div>
+
+            <!-- Event Details -->
+            <div class="card-meta">
+              <span class="meta-item"
+                >📅
+                <span th:text="${#temporals.format(event.dateTime, 'MMM d')}"
+                  >Date</span
+                ></span
+              >
+              <span class="meta-item"
+                >📍 <span th:text="${event.location}">Location</span></span
+              >
+            </div>
+
+            <div class="card-media">
+              <div class="img-placeholder">
+                <div class="placeholder-icon">
+                  <img
+                    th:if="${event.imageUrl != null}"
+                    th:src="${event.imageUrl}"
+                    alt="event image"
+                    class="event-card-image"
+                  />
+                  <div
+                    th:if="${event.imageUrl == null}"
+                    class="event-card-image"
+                  >
+                    No image
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <!-- Button for hidden modal -->
-          <button
-            type="button"
-            class="btn btn-dark"
-            th:attr="data-event-id=${event.eventId}"
-            onclick="openEventModal(this)"
-          >
-            View Details
-          </button>
-
-          <!-- Cancel RSVP button -->
-          <form
-            th:action="@{/rsvp/{userId}/rsvp/event/{eventId}/delete(userId=${userId}, eventId=${event.eventId})}"
-            method="post"
-            onsubmit="return confirm('Are you sure you want to cancel this RSVP?');"
-          >
-            <button type="submit" class="btn btn-dark" style="width: 100%">
-              Cancel RSVP
+            <!-- Button for hidden modal -->
+            <button
+              type="button"
+              class="btn btn-dark"
+              th:attr="data-event-id=${event.eventId}"
+              onclick="openEventModal(this)"
+            >
+              View Details
             </button>
-          </form>
-        </div>
 
-        <!-- Hidden modal template -->
-        <template th:id="'event-template-' + ${event.eventId}">
-          <th:block
-            th:replace="~{components/eventDetail :: eventDetails(event=${event})}"
-          ></th:block>
-        </template>
-      </article>
-    </div>
+            <!-- Cancel RSVP button -->
+            <form
+              th:action="@{/rsvp/{userId}/rsvp/event/{eventId}/delete(userId=${userId}, eventId=${event.eventId})}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to cancel this RSVP?');"
+            >
+              <button type="submit" class="btn btn-dark" style="width: 100%">
+                Cancel RSVP
+              </button>
+            </form>
+          </div>
+
+          <!-- Hidden modal template -->
+          <template th:id="${'event-template-' + event.eventId}">
+            <th:block
+              th:replace="~{components/eventDetail :: eventDetails(event=${event})}"
+            ></th:block>
+          </template>
+        </article>
+      </div>
     </section>
 
     <!-- PROFILE TAB -->
-    <section id="tab-profile"
-            th:style="${activeTab} == 'profile' ? 'display:block' : 'display:none'">
-            <div th:replace="~{components/profile :: profile(profile=${userProfile})}"></div>
+    <section
+      id="tab-profile"
+      th:style="${activeTab == 'profile'} ? 'display:block' : 'display:none'"
+    >
+      <h1>My Profile</h1>
+
+      <!-- Only render the fragment when Profile tab is active -->
+      <div>
+        <div th:if="${userProfile != null}">
+          <div
+            th:replace="~{components/profile :: profile(profile=${userProfile})}"
+          ></div>
+        </div>
+        <div th:if="${userProfile == null}" class="empty-state">
+          <p>Profile information is not available.</p>
+        </div>
       </div>
-      
-    <!-- Only render the fragment when Profile tab is active -->
-    <div th:if="${activeTab == 'profile'}">
-    <div th:if="${userProfile != null}">
-      <div th:replace="~{components/profile :: profile(profile=${userProfile})}"></div>
-    </div>
-    <div th:if="${userProfile == null}" class="empty-state">
-      <p>Profile information is not available.</p>
-    </div>
-  </div>
     </section>
+
+    <!-- Profile Edit Modal (static form posting to /profile/edit) -->
+    <div id="profileModal" class="modal" style="display: none">
+      <div
+        class="modal-content"
+        style="max-width: 600px; margin: auto; position: relative"
+      >
+        <span
+          class="close"
+          onclick="closeProfileModal()"
+          style="position: absolute; right: 1rem; top: 0.5rem; cursor: pointer"
+          >&times;</span
+        >
+        <div
+          th:replace="~{components/profileEditForm :: editForm(profile=${userProfile})}"
+        ></div>
+      </div>
+    </div>
 
     <!-- Global modal -->
     <div id="eventModal" class="modal">
@@ -186,7 +303,9 @@
       </div>
     </div>
     <footer th:replace="~{components/footer :: footer}"></footer>
+
     <script th:inline="javascript">
+      /*Event Modal*/
       function openEventModal(button) {
         const eventId = button.getAttribute("data-event-id");
         const template = document.getElementById("event-template-" + eventId);
@@ -201,20 +320,37 @@
         const modal = document.getElementById("eventModal");
         if (event.target === modal) closeEventModal();
       };
+      /*Profile Modal*/
+      function openProfileModal() {
+        document.getElementById("profileModal").style.display = "block";
+      }
+      function closeProfileModal() {
+        document.getElementById("profileModal").style.display = "none";
+      }
+      window.addEventListener("click", function (e) {
+        const eventModal = document.getElementById("eventModal");
+        const profileModal = document.getElementById("profileModal");
+        if (e.target === eventModal) closeEventModal();
+        if (e.target === profileModal) closeProfileModal();
+      });
       function switchTab(tab) {
-        const rsvps = document.getElementById('tab-rsvps');
-        const profile = document.getElementById('tab-profile');
-        rsvps.style.display = (tab === 'rsvps') ? 'block' : 'none';
-        profile.style.display = (tab === 'profile') ? 'block' : 'none';
+        const rsvps = document.getElementById("tab-rsvps");
+        const profile = document.getElementById("tab-profile");
+        rsvps.style.display = tab === "rsvps" ? "block" : "none";
+        profile.style.display = tab === "profile" ? "block" : "none";
 
         // toggle 'active' class on buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.trim().toLowerCase().includes(tab));
-        if (btn) btn.classList.add('active');
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        const btn = Array.from(document.querySelectorAll(".tab-btn")).find(
+          (b) => b.textContent.trim().toLowerCase().includes(tab)
+        );
+        if (btn) btn.classList.add("active");
 
         const url = new URL(window.location.href);
-        url.searchParams.set('tab', tab);
-        history.replaceState({}, '', url.toString());
+        url.searchParams.set("tab", tab);
+        history.replaceState({}, "", url.toString());
       }
     </script>
   </body>
