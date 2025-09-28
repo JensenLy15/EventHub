@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <!-- Fragment expects: Map "profile" -->
+    <div th:fragment="editForm(profile)">
+      <h2 style="margin-top: 0">Edit Profile</h2>
+      <form
+        th:action="@{/profile/edit}"
+        method="post"
+        th:fragment="editForm"
+        style="display: grid; gap: 0.75rem"
+      >
+        <input
+          th:if="${_csrf != null}"
+          type="hidden"
+          th:name="${_csrf.parameterName}"
+          th:value="${_csrf.token}"
+        />
+
+        <label>
+          Display name
+          <input
+            type="text"
+            name="displayName"
+            th:value="${profile['display_name']}"
+            placeholder="Your display name"
+          />
+        </label>
+
+        <label>
+          Avatar URL
+          <input
+            type="url"
+            name="avatarUrl"
+            th:value="${profile['avatar_url']}"
+            placeholder="https://example.com/avatar.png"
+          />
+        </label>
+
+        <label>
+          Bio
+          <textarea
+            name="bio"
+            rows="4"
+            placeholder="Tell us about yourself"
+            th:text="${profile['bio']}"
+          ></textarea>
+        </label>
+
+        <label>
+          Gender
+          <select
+            name="gender"
+            th:value="${profile['gender'] != null ? profile['gender'] : 'prefer_not_to_say'}"
+          >
+            <option value="male" th:selected="${profile['gender'] == 'male'}">
+              Male
+            </option>
+            <option
+              value="female"
+              th:selected="${profile['gender'] == 'female'}"
+            >
+              Female
+            </option>
+            <option
+              value="nonbinary"
+              th:selected="${profile['gender'] == 'nonbinary'}"
+            >
+              Non-binary
+            </option>
+            <option value="other" th:selected="${profile['gender'] == 'other'}">
+              Other
+            </option>
+            <option
+              value="prefer_not_to_say"
+              th:selected="${profile['gender'] == null || profile['gender'] == 'prefer_not_to_say'}"
+            >
+              Prefer not to say
+            </option>
+          </select>
+        </label>
+
+        <div
+          style="
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+          "
+        >
+          <button type="button" class="btn" onclick="closeProfileModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
