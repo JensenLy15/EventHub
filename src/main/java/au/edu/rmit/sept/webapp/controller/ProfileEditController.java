@@ -10,39 +10,28 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Controller
 public class ProfileEditController {
+
   private static final Set<String> allowedGenders = Set.of(
-    "male","female","nonbinary","other","prefer_not_to_say"
+      "male", "female", "nonbinary", "other", "prefer_not_to_say"
   );
 
   private final CurrentUserService currentUserService;
   private final UserService userService;
 
-  public ProfileEditController(CurrentUserService currentUserService,
-                              UserService userService) {
+  public ProfileEditController(CurrentUserService currentUserService, UserService userService) {
     this.currentUserService = currentUserService;
     this.userService = userService;
   }
 
-  /* Helpers */
-  // private void populateModel(Model model) {
-  //   Long userId = currentUserService.getCurrentUserId();
-  //   Map<String, Object> user = userService.findUserProfileMapById(userId); // expects keys: user_id, name, email, display_name, avatar_url, bio, gender, updated_at
-  //   model.addAttribute("user", user);
-  //   model.addAttribute("genders", allowedGenders);
-  // }
-
-  // private static String emptyToNull(String s) {
-  //   return (StringUtils.hasText(s) ? s : null);
-  // }
-
   private static String normalizeGender(String raw) {
     if (!StringUtils.hasText(raw)) return "prefer_not_to_say";
     String g = raw.toLowerCase(Locale.ROOT).trim();
-    // normalize separators and common variants
     g = g.replace(' ', '_').replace('-', '_');
     if ("non_binary".equals(g) || "nb".equals(g)) g = "nonbinary";
     if ("prefer_not_to_say".equals(g)
@@ -54,29 +43,42 @@ public class ProfileEditController {
     return g;
   }
 
-  @PostMapping("/profile/edit")
-  public String update(String displayName,
-                        String avatarUrl,
-                        String bio,
-                        String gender,
-                        RedirectAttributes ra) {
-  
-  Long userId = currentUserService.getCurrentUserId();
-
-  try {
-    String dn = StringUtils.trimAllWhitespace(displayName);
-    String au = StringUtils.hasText(avatarUrl) ? StringUtils.trimAllWhitespace(avatarUrl) : null;
-    String b = StringUtils.hasText(bio) ? StringUtils.trimAllWhitespace(bio) : null;
-    String g = normalizeGender(StringUtils.trimAllWhitespace(gender));
-
-    if (!allowedGenders.contains(g)) {
-      throw new IllegalArgumentException("Invalid gender: " + gender);
-    }
-    userService.updateProfile(userId, dn, au, b, g);
-    ra.addFlashAttribute("successMessage", "Profile updated successfully.");
-  } catch (IllegalArgumentException e) {
-    ra.addFlashAttribute("errorMessage", e.getMessage());
+  /** Always return the modal fragment (no full-page edit). */
+  @GetMapping("/profile/edit")
+  public String editForm(@RequestParam(value = "fragment", required = false) Boolean fragment,
+                         Model model) {
+    Long userId = currentUserService.getCurrentUserId();
+    Map<String, Object> profile = userService.findUserProfileMapById(userId);
+    model.addAttribute("profile", profile);
+    model.addAttribute("genders", allowedGenders);
+    return "components/profileEditForm :: editForm";
   }
-  return "redirect:/rsvp" + userId + "/my-rsvps?tab=profile";
+
+  @PostMapping("/profile/edit")
+  public String update(@RequestParam(required = false) String displayName,
+                       @RequestParam(required = false) String avatarUrl,
+                       @RequestParam(required = false) String bio,
+                       @RequestParam(required = false) String gender,
+                       RedirectAttributes ra) {
+    Long userId = currentUserService.getCurrentUserId();
+
+    // Keep empty strings (tests assert exact values), trim ends only.
+    String dn = displayName == null ? "" : displayName.trim();
+    String au = avatarUrl   == null ? "" : avatarUrl.trim();
+    String b  = bio         == null ? "" : bio.trim();
+    String g  = normalizeGender(gender);
+
+    try {
+      if (!allowedGenders.contains(g)) {
+        throw new IllegalArgumentException("Invalid gender: " + gender);
+      }
+      userService.updateProfile(userId, dn, au, b, g);
+      ra.addFlashAttribute("successMessage", "Profile updated successfully.");
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("errorMessage", e.getMessage());
+    }
+
+    // Match the test’s expected redirect:
+    return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
   }
 }
