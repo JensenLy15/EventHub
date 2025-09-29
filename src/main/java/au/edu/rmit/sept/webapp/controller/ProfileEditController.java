@@ -1,18 +1,22 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import au.edu.rmit.sept.webapp.service.CurrentUserService;
-import au.edu.rmit.sept.webapp.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import au.edu.rmit.sept.webapp.model.EventCategory;
+import au.edu.rmit.sept.webapp.service.CategoryService;
+import au.edu.rmit.sept.webapp.service.CurrentUserService;
+import au.edu.rmit.sept.webapp.service.UserService;
 
 @Controller
 public class ProfileEditController {
@@ -23,10 +27,12 @@ public class ProfileEditController {
 
   private final CurrentUserService currentUserService;
   private final UserService userService;
+  private final CategoryService categoryService;
 
-  public ProfileEditController(CurrentUserService currentUserService, UserService userService) {
+  public ProfileEditController(CurrentUserService currentUserService, UserService userService, CategoryService categoryService) {
     this.currentUserService = currentUserService;
     this.userService = userService;
+    this.categoryService = categoryService;
   }
 
   private static String normalizeGender(String raw) {
@@ -49,36 +55,51 @@ public class ProfileEditController {
                          Model model) {
     Long userId = currentUserService.getCurrentUserId();
     Map<String, Object> profile = userService.findUserProfileMapById(userId);
+    List<Long> preferredCategoryIds = userService.getUserPreferredCategories(userId);
+    List<EventCategory> allCategories = categoryService.getAllCategories();
+
     model.addAttribute("profile", profile);
     model.addAttribute("genders", allowedGenders);
+    model.addAttribute("preferredCategoryIds", preferredCategoryIds);
+    model.addAttribute("allCategories", allCategories);
     return "components/profileEditForm :: editForm";
   }
 
   @PostMapping("/profile/edit")
-  public String update(@RequestParam(required = false) String displayName,
-                       @RequestParam(required = false) String avatarUrl,
-                       @RequestParam(required = false) String bio,
-                       @RequestParam(required = false) String gender,
-                       RedirectAttributes ra) {
-    Long userId = currentUserService.getCurrentUserId();
+  public String update(
+      @RequestParam(required = false) String displayName,
+      @RequestParam(required = false) String avatarUrl,
+      @RequestParam(required = false) String bio,
+      @RequestParam(required = false) String gender,
+      @RequestParam(required = false, name = "categoryIds") List<Long> categoryIds,
+      RedirectAttributes ra
+  ) {
+      Long userId = currentUserService.getCurrentUserId();
 
-    // Keep empty strings (tests assert exact values), trim ends only.
-    String dn = displayName == null ? "" : displayName.trim();
-    String au = avatarUrl   == null ? "" : avatarUrl.trim();
-    String b  = bio         == null ? "" : bio.trim();
-    String g  = normalizeGender(gender);
+      String dn = displayName == null ? "" : displayName.trim();
+      String au = avatarUrl == null ? "" : avatarUrl.trim();
+      String b  = bio == null ? "" : bio.trim();
+      String g  = normalizeGender(gender);
 
-    try {
-      if (!allowedGenders.contains(g)) {
-        throw new IllegalArgumentException("Invalid gender: " + gender);
+      try {
+          if (!allowedGenders.contains(g)) {
+              throw new IllegalArgumentException("Invalid gender: " + gender);
+          }
+
+          if (categoryIds != null && categoryIds.size() > 3) {
+              ra.addFlashAttribute("errorMessage", "You can select up to 3 categories only.");
+              return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
+          }
+
+          // Update profile and categories
+          userService.updateProfile(userId, dn, au, b, g);
+          userService.saveUserPreferredCategories(userId, categoryIds != null ? categoryIds : List.of());
+
+          ra.addFlashAttribute("successMessage", "Profile updated successfully.");
+      } catch (IllegalArgumentException e) {
+          ra.addFlashAttribute("errorMessage", e.getMessage());
       }
-      userService.updateProfile(userId, dn, au, b, g);
-      ra.addFlashAttribute("successMessage", "Profile updated successfully.");
-    } catch (IllegalArgumentException e) {
-      ra.addFlashAttribute("errorMessage", e.getMessage());
-    }
 
-    // Match the test’s expected redirect:
-    return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
+      return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
   }
 }

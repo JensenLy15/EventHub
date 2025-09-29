@@ -47,6 +47,36 @@
           ></textarea>
         </label>
 
+        <label>Select up to 3 preferred categories:</label>
+        <div id="preferredCategories" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          <div th:each="cat : ${allCategories}">
+            <label style="display: flex; align-items: center; gap: 0.25rem;">
+              <input
+                type="checkbox"
+                name="categoryIds"
+                th:value="${cat.categoryId}"
+                th:checked="${preferredCategoryIds.contains(cat.categoryId)}" />
+              <span th:text="${cat.name}"></span>
+            </label>
+          </div>
+        </div>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            const maxCategories = 3;
+            const checkboxes = document.querySelectorAll('#preferredCategories input[type="checkbox"]');
+
+            checkboxes.forEach(checkbox => {
+              checkbox.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('#preferredCategories input[type="checkbox"]:checked').length;
+                if (checkedCount > maxCategories) {
+                  alert(`You can select up to ${maxCategories} categories only.`);
+                  checkbox.checked = false; // undo last check
+                }
+              });
+            });
+          });
+        </script>
+
         <label>
           Gender
           <select

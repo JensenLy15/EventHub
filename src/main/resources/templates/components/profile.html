@@ -58,6 +58,19 @@
         </p>
       </div>
 
+      <!-- Showing current user preferred categories -->
+      <div class="profile-preferred-categories" style="margin-top: 1rem">
+        <h3>Preferred categories</h3>
+          <ul>
+              <li th:if="${#lists.isEmpty(preferredCategoryNames)}">
+                  <p>No preferred categories yet</p>
+              </li>
+              <li th:each="category : ${preferredCategoryNames}">
+                  <p th:text="${category}"></p>
+              </li>
+          </ul>
+      </div>
+
       <div class="profile-actions" style="margin-top: 1rem">
         <button type="button" class="btn btn-blue" onclick="openProfileModal()">
           Edit Profile

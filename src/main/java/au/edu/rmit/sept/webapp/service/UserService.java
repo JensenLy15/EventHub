@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 
 import au.edu.rmit.sept.webapp.model.User;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
-import ch.qos.logback.core.util.StringUtil;
-import io.micrometer.common.util.StringUtils;
 
 @Service
 public class UserService {
@@ -52,5 +50,14 @@ public class UserService {
       (bio == null || bio.isBlank()) ? null : bio, g);
     }
 
+    public List<Long> getUserPreferredCategories(Long userId)
+    {
+        return userRepository.getUserPreferredCategories(userId);
+    }
+
+    public void saveUserPreferredCategories(Long userId, List<Long> categoryIds)
+    {
+        userRepository.saveUserPreferredCategories(userId, categoryIds);
+    }
 }
 
