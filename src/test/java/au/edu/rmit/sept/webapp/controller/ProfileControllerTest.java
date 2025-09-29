@@ -241,4 +241,134 @@ class ProfileControllerTest {
           .andExpect(content().string(containsString("Sports Meetup")))
           .andExpect(content().string(not(containsString("Music Concert")))); // Not in preferred
   }
+
+  @Test
+    void updatePreferences_controllerTest() throws Exception {
+        Long userId = 1L;
+
+        // Mock current user
+        when(currentUserService.getCurrentUserId()).thenReturn(userId);
+
+        // Mock profile data before update
+        Map<String, Object> profile = Map.of(
+            "display_name", "Old Name",
+            "bio", "Old bio"
+        );
+        when(userService.findUserProfileMapById(userId)).thenReturn(profile);
+
+        // Mock all categories
+        List<EventCategory> allCategories = List.of(
+            new EventCategory(1L, "Tech"),
+            new EventCategory(2L, "Music"),
+            new EventCategory(3L, "Sports"),
+            new EventCategory(4L, "Career")
+        );
+        when(categoryService.getAllCategories()).thenReturn(allCategories);
+
+        // Mock existing preferred categories
+        List<Long> oldPreferredCategories = List.of(1L, 3L);
+        when(userService.getUserPreferredCategories(userId)).thenReturn(oldPreferredCategories);
+
+        // Simulate the user selecting new categories (up to 3)
+        List<String> newCategories = List.of("2", "3"); // Music + Sports
+
+        // Perform the POST request to update profile
+        mvc.perform(post("/profile/edit")
+                .with(user("dummy@example.com").roles("USER"))
+                .with(csrf())
+                .param("displayName", "New Name")
+                .param("avatarUrl", "")
+                .param("bio", "New bio")
+                .param("gender", "female")
+                .param("categoryIds", newCategories.toArray(new String[0]))
+        )
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/rsvp/1/my-rsvps?tab=profile"))
+        .andExpect(flash().attribute("successMessage", "Profile updated successfully."));
+
+        // Verify profile update method is called
+        verify(userService).updateProfile(userId, "New Name", "", "New bio", "female");
+
+        // Verify preferred categories are updated
+        verify(userService).saveUserPreferredCategories(userId, List.of(2L, 3L));
+        when(userService.getUserPreferredCategories(userId)).thenReturn(List.of(2L, 3L));
+
+        // Now simulate fetching the profile again to check recommendations
+        List<Event> recommendedEvents = List.of(
+            new Event(101L, "Music Concert", "Live music", 2L, LocalDateTime.now().plusDays(3),
+                    "Hall A", List.of("Music"), 100, new BigDecimal("0.00")),
+            new Event(102L, "Sports Meetup", "Community sports", 3L, LocalDateTime.now().plusDays(5),
+                    "Gym Hall", List.of("Sports"), 50, new BigDecimal("10.00"))
+        );
+        when(rsvpService.getRsvpedEventsByUser(userId, "ASC")).thenReturn(recommendedEvents);
+
+        mvc.perform(get("/rsvp/{userId}/my-rsvps", userId)
+                .param("tab", "profile")
+                .with(user("dummy@example.com").roles("USER")))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("preferredCategoryIds", List.of(2L, 3L)))
+            .andExpect(model().attribute("events", recommendedEvents))
+            .andExpect(content().string(containsString("Music Concert")))
+            .andExpect(content().string(containsString("Sports Meetup")))
+            .andExpect(content().string(not(containsString("Tech Talk"))));
+    }
+
+    @Test
+    void resetPreferences_controllerTest() throws Exception {
+        Long userId = 1L;
+
+        // Mock current user
+        when(currentUserService.getCurrentUserId()).thenReturn(userId);
+
+        // Simulate POST request to reset preferences
+        mvc.perform(post("/profile/edit")
+                .with(user("dummy@example.com").roles("USER"))
+                .with(csrf())
+                .param("resetCategories", "true") // indicates the reset button was clicked
+        )
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/rsvp/1/my-rsvps?tab=profile"))
+        .andExpect(flash().attribute("successMessage", "Preferred categories have been reset."));
+
+        // Verify that the reset method was called
+        verify(userService).resetUserSavedPreferredCategories(userId);
+
+        // Simulate fetching the profile after reset
+        when(userService.getUserPreferredCategories(userId)).thenReturn(List.of()); // no categories selected
+        when(userService.findUserProfileMapById(userId)).thenReturn(Map.of(
+                "display_name", "Test User",
+                "bio", "Some bio"
+        ));
+
+        mvc.perform(get("/rsvp/{userId}/my-rsvps", userId)
+                .param("tab", "profile")
+                .with(user("dummy@example.com").roles("USER"))
+        )
+        .andExpect(status().isOk())
+        .andExpect(model().attribute("preferredCategoryIds", List.of())) // no categories selected
+        .andExpect(content().string(containsString("No preferred categories yet")));
+    }
+
+    @Test
+    void resetConfirmation_controllerTest() throws Exception {
+        Long userId = 1L;
+
+        // Mock current user
+        when(currentUserService.getCurrentUserId()).thenReturn(userId);
+
+        // Perform POST request simulating reset button click
+        mvc.perform(post("/profile/edit")
+                .with(user("dummy@example.com").roles("USER"))
+                .with(csrf())
+                .param("resetCategories", "true") // simulates pressing the reset button
+        )
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/rsvp/" + userId + "/my-rsvps?tab=profile"))
+        .andExpect(flash().attribute("successMessage", "Preferred categories have been reset."));
+
+        // Verify that the service method to reset categories was called
+        verify(userService).resetUserSavedPreferredCategories(userId);
+    }
+
+
 }

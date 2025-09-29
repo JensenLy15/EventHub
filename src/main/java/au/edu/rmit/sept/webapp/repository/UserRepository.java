@@ -149,6 +149,15 @@ public class UserRepository {
         jdbcTemplate.update(sql, userId, categoryId);
     }
   }
+  
+  /*
+   * Resets the saved preferred categories before
+   */
+  public void resetUserSavedPreferredCategories(Long userId)
+  {
+    String sql = "DELETE FROM USER_PREFERRED_CATEGORY WHERE user_id = ?";
+    jdbcTemplate.update(sql,userId);
+  }
 
 
   

@@ -47,8 +47,18 @@
           ></textarea>
         </label>
 
-        <label>Select up to 3 preferred categories:</label>
-        <div id="preferredCategories" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <label style="display: flex; align-items: center; justify-content: space-between;">
+          <span>Select up to 3 preferred categories:</span>
+          <button 
+              type="submit" 
+              name="resetCategories" 
+              class="btn btn-secondary btn-sm"
+              onclick="return confirm('Are you sure you want to reset your preferred categories?');">
+              Reset
+          </button>
+        </label>
+
+        <div id="preferredCategories" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
           <div th:each="cat : ${allCategories}">
             <label style="display: flex; align-items: center; gap: 0.25rem;">
               <input
@@ -60,6 +70,8 @@
             </label>
           </div>
         </div>
+
+        <!--Prevents user to select more than 3 preferred categories-->
         <script>
           document.addEventListener("DOMContentLoaded", function() {
             const maxCategories = 3;
@@ -76,7 +88,18 @@
             });
           });
         </script>
+        
+        <!--Reset preferred categories confirmation message-->
+        <script>
+            document.getElementById('resetCategoriesForm').addEventListener('submit', function(event) {
+                const confirmed = confirm("Are you sure you want to reset your preferred categories?");
+                if (!confirmed) {
+                    event.preventDefault(); 
+                }
+            });
+        </script>
 
+        
         <label>
           Gender
           <select

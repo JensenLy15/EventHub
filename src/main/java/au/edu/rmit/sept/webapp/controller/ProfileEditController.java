@@ -67,15 +67,24 @@ public class ProfileEditController {
 
   @PostMapping("/profile/edit")
   public String update(
-      @RequestParam(required = false) String displayName,
-      @RequestParam(required = false) String avatarUrl,
-      @RequestParam(required = false) String bio,
-      @RequestParam(required = false) String gender,
-      @RequestParam(required = false, name = "categoryIds") List<Long> categoryIds,
-      RedirectAttributes ra
-  ) {
+          @RequestParam(required = false) String displayName,
+          @RequestParam(required = false) String avatarUrl,
+          @RequestParam(required = false) String bio,
+          @RequestParam(required = false) String gender,
+          @RequestParam(required = false, name = "categoryIds") List<Long> categoryIds,
+          @RequestParam(required = false) String resetCategories,
+          RedirectAttributes ra) {
+
       Long userId = currentUserService.getCurrentUserId();
 
+      if (resetCategories != null) {
+          // User clicked the reset button
+          userService.resetUserSavedPreferredCategories(userId);
+          ra.addFlashAttribute("successMessage", "Preferred categories have been reset.");
+          return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
+      }
+
+      // Normal save flow
       String dn = displayName == null ? "" : displayName.trim();
       String au = avatarUrl == null ? "" : avatarUrl.trim();
       String b  = bio == null ? "" : bio.trim();
@@ -91,7 +100,6 @@ public class ProfileEditController {
               return "redirect:/rsvp/" + userId + "/my-rsvps?tab=profile";
           }
 
-          // Update profile and categories
           userService.updateProfile(userId, dn, au, b, g);
           userService.saveUserPreferredCategories(userId, categoryIds != null ? categoryIds : List.of());
 

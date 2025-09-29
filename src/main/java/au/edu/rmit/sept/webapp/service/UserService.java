@@ -59,5 +59,10 @@ public class UserService {
     {
         userRepository.saveUserPreferredCategories(userId, categoryIds);
     }
+
+    public void resetUserSavedPreferredCategories(Long userId)
+    {
+        userRepository.resetUserSavedPreferredCategories(userId);
+    }
 }
 
