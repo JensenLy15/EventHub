@@ -12,12 +12,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class UserProfileMigrationTest {
   @Autowired JdbcTemplate jdbc;
 
-  /*Test to see if migration works as expected by having extra columns for the user table */
   @Test
   void users_has_profile_columns() {
     var columns = jdbc.queryForList("""
       SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_NAME='USERS'
+      WHERE TABLE_NAME='users'
     """);
     var names = columns.stream().map(m -> ((Map<?,?>)m).get("COLUMN_NAME").toString().toLowerCase()).toList();
     assertThat(names).contains("display_name","avatar_url","bio","gender","updated_at");
