@@ -119,6 +119,27 @@
           <!-- Hidden modal template for THIS event -->
           <template th:id="'event-template-' + ${event.eventId}">
           <th:block th:replace="~{components/eventDetail :: eventDetails(event=${event})}"></th:block>
+
+            <!-- Report section -->
+            <div class="report-section" style="margin-top: 20px;">
+              <h4>Report This Event</h4>
+              <form
+                th:action="@{'/report/' + ${currentUserId} + '/event/' + ${event.eventId}}"
+                method="post"
+                onsubmit="return confirm('Submit report for this event?')"
+              >
+                <textarea
+                  name="note"
+                  rows="3"
+                  placeholder="Describe the issue..."
+                  required
+                  style="width: 100%; resize: none;"
+                ></textarea>
+                <br /><br />
+                <button type="submit" class="btn btn-danger">Submit Report</button>
+              </form>
+            </div>
+
           </template>
 
           <!-- RSVP Buttons -->
