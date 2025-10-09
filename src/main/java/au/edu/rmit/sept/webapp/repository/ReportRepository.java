@@ -24,6 +24,7 @@ public class ReportRepository {
             rs.getLong("user_id"),
             rs.getLong("event_id"),
             rs.getString("note"),
+            rs.getString("reportStatus"),
             rs.getTimestamp("created_at").toLocalDateTime()
         );
     
@@ -32,9 +33,15 @@ public class ReportRepository {
         List<Report> reports = jdbcTemplate.query(sql, MAPPER);
         return reports;
     }
+
+    public List<Report> getReportsByEvent(long eventId) { 
+        String sql = "SELECT * FROM reports WHERE event_id = ?";
+        List<Report> reports = jdbcTemplate.query(sql, MAPPER, eventId);
+        return reports;
+    }
     
     public boolean addReport(Report rp) {
-        String sql = "INSERT INTO reports (user_id, event_id, note, status, created_at) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO reports (user_id, event_id, note, reportStatus, created_at) VALUES (?, ?, ?, ?, ?)";
         boolean status = jdbcTemplate.update(sql, rp.getUserId(), rp.getEventId(), rp.getNote(), rp.getStatus(), rp.getCreatedAt()) > 0;
         return status;
     }

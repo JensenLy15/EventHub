@@ -20,17 +20,18 @@ public class Report {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Report(Long rsvpId, Long userId, Long eventId, String note, LocalDateTime createdAt) {
+    public Report(Long rsvpId, Long userId, Long eventId, String note, String status, LocalDateTime createdAt) {
         this.reportId = rsvpId;
         this.userId = userId;
         this.eventId = eventId;
         this.note = note; 
+        this.status = status; 
         this.createdAt = createdAt;
     }
 
     // GETTERs and SETTERs 
-    public Long getRsvpId() { return reportId; }
-    public void setRsvpId(Long rsvpId) { this.reportId = rsvpId; }
+    public Long getReportId() { return reportId; }
+    public void setReportId(Long rsvpId) { this.reportId = rsvpId; }
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
