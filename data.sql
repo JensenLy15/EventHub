@@ -27,7 +27,7 @@ SELECT
   200,
   0.00,
   'Celebrate the start of semester with food, music, and games. Meet new friends and reconnect.',
-  '17:30 – Doors open\n18:00 – Welcome\n18:15 – BBQ\n19:30 – Games & prizes',
+  '17:30 - Doors open\n18:00 - Welcome\n18:15 - BBQ\n19:30 - Games & prizes',
   'Host: Student Union',
   'Casual / comfy'
 FROM users u
@@ -46,7 +46,7 @@ SELECT
   150,
   0.00,
   'Hear from engineers and recruiters about pathways into cloud roles, internships and graduate tips.',
-  '18:00 – Check-in\n18:15 – Panel discussion\n19:00 – Q&A\n19:20 – Networking',
+  '18:00 - Check-in\n18:15 - Panel discussion\n19:00 - Q&A\n19:20 - Networking',
   'A. Chen (AWS), J. Patel (Azure), R. Nguyen (GCP)',
   'Smart casual'
 FROM users u
@@ -65,7 +65,7 @@ SELECT
   80,
   0.00,
   'Bring a project or join a team. Mentors on-site, food provided.',
-  '18:00 – Hallo\n19:00 – Test',
+  '18:00 - Hallo\n19:00 - Test',
   'Community mentors',
   'Casual / hoodie-friendly'
 FROM users u
@@ -84,7 +84,7 @@ SELECT
   500,
   0.00,
   'Lightning talks on ML ops, feature stores, and practical tips.',
-  '18:00 – Doors\n18:10 – Talk 1\n18:30 – Talk 2\n18:50 – Talk 3\n19:15 – Networking',
+  '18:00 - Doors\n18:10 - Talk 1\n18:30 - Talk 2\n18:50 - Talk 3\n19:15 - Networking',
   'Rotating community speakers',
   'Smart casual'
 FROM users u
