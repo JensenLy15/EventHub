@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:replace="~{components/layout :: layout(~{::title}, ~{::section})}"
+>
+  <head>
+    <title>Event RSVPs</title>
+  </head>
+  <body>
+    <section class="page">
+      <a class="btn btn-light" th:href="@{/admin/dashboard}"
+        >← Back to dashboard</a
+      >
+
+      <h1 class="section-title">
+        Reports for <span th:text="${event.name}">Event</span>
+      </h1>
+      <p class="muted">
+        <span
+          th:text="${#temporals.format(event.dateTime, 'EEE, d MMM yyyy HH:mm')}"
+          >Date</span
+        >
+        ·
+        <span th:text="${event.location}">Location</span>
+      </p>
+
+      <div th:if="${#lists.isEmpty(reports)}" class="empty-events">
+        No Report yet.
+      </div>
+
+      <div th:if="${!#lists.isEmpty(reports)}" class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>User ID</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${reports}">
+              <td th:text="${r.reportId}">Report ID</td>
+              <td th:text="${r.userId}">User ID</td>
+              <td th:text="${r.note}">Description</td>
+              <td th:text="${r.status}">Status</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </body>
+</html>

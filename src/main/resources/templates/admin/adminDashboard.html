@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:replace="~{components/layout :: layout(~{::title}, ~{::section})}"
+>
+  <head>
+    <title>Organizer Dashboard</title>
+    <link
+      rel="stylesheet"
+      th:href="@{/styles.css(v=${#temporals.format(#temporals.createNow(),'yyyyMMddHHmmss')})}"
+    />
+  </head>
+  <body>
+    <section class="page">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Create new &amp; exciting events</h1>
+          <p>Welcome to admin dashboard!</p>
+          <div class="hero-cta">
+            <a th:href="@{/eventPage}" class="btn btn-dark">Create Event</a>
+            <a th:href="@{/}" class="btn btn-light">Explore Events</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-media">
+        <div class="media-placeholder">
+          <div class="hero-wrap">
+            <img
+              class="hero-img"
+              th:src="@{/homePage.jpg}"
+              alt="Organizer hero"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <!-- Upcoming Events -->
+      <h2 class="section-title">Upcoming events</h2>
+
+      <!-- Error message -->
+      <div th:if="${error}" class="alert alert-error" th:text="${error}">
+        Event not found or not hosted by you.
+      </div>
+
+      <!-- Empty state -->
+      <div th:if="${#lists.isEmpty(events)}" class="empty-events">
+        You haven’t created any upcoming events yet.
+      </div>
+
+      <!-- Event Cards -->
+      <div class="cards" th:if="${!#lists.isEmpty(events)}">
+        <article class="card" th:each="ev : ${events}">
+          <div class="card-body">
+            <!-- Title + inline categories -->
+            <div class="title-row">
+              <h3 class="card-title" th:text="${ev.name}">Event name</h3>
+              <div class="chip-row-inline" th:if="${ev.category != null}">
+                <span class="chip" th:each="c : ${ev.category}" th:text="${c}"
+                  >Category</span
+                >
+              </div>
+            </div>
+
+            <p
+              class="muted"
+              th:text="${#temporals.format(ev.dateTime, 'EEE, d MMM yyyy HH:mm')}"
+            >
+              Date
+            </p>
+            <p class="muted" th:text="${ev.location}">Location</p>
+
+            <!-- View Details button -->
+            <button
+              type="button"
+              class="btn btn-dark"
+              th:attr="data-event-id=${ev.eventId}"
+              onclick="openEventModal(this)"
+            >
+              View Details
+            </button>
+
+            <!-- Hidden modal template for THIS event -->
+            <template th:id="'event-template-' + ${ev.eventId}">
+              <th:block
+                th:replace="~{components/eventDetail :: eventDetails(event=${ev})}"
+              ></th:block>
+            </template>
+
+            <div class="card-actions">
+              <a
+                class="btn btn-dark"
+                th:href="@{|/admin/events/${ev.eventId}/reports|}"
+              >
+                View Reports
+              </a>
+
+              <a
+                class="btn btn-blue"
+                th:href="@{'/event/edit/' + ${ev.eventId}}"
+              >
+                Edit
+              </a>
+
+              <form
+                th:action="@{'/event/delete/' + ${ev.eventId}}"
+                method="post"
+                class="inline"
+                onsubmit="return confirm('Are you sure you want to delete this event?');"
+              >
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+        </article>
+      </div>
+      <!-- Global modal (single instance on the page) -->
+      <div id="eventModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEventModal()">&times;</span>
+          <div id="modal-body"></div>
+        </div>
+      </div>
+      <script>
+        function openEventModal(button) {
+          const eventId = button.getAttribute("data-event-id");
+          const template = document.getElementById("event-template-" + eventId);
+          if (!template) return;
+          document.getElementById("modal-body").innerHTML = template.innerHTML;
+          document.getElementById("eventModal").style.display = "block";
+        }
+        function closeEventModal() {
+          document.getElementById("eventModal").style.display = "none";
+        }
+        window.onclick = function (event) {
+          const modal = document.getElementById("eventModal");
+          if (event.target === modal) closeEventModal();
+        };
+      </script>
+    </section>
+  </body>
+</html>
