@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine as base
+FROM eclipse-temurin:17-jdk-jammy AS base
 
 # First build the app
 FROM base as builder
