@@ -30,6 +30,13 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+  <dependency>
+          <!-- mysql dependencies-->
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.28</version>
+        </dependency>
+       
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -94,10 +101,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
-    <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-    </dependency>
+   
 	</dependencies>
 
 	<build>

@@ -6,49 +6,42 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import au.edu.rmit.sept.webapp.model.EventCategory;
 
 
 @SpringBootTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:eventhub;DB_CLOSE_DELAY=-1",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=",
-    "spring.flyway.enabled=true",
-    "spring.flyway.locations=classpath:db/migration",
-    "spring.flyway.clean-disabled=false",   // allow clean() in tests
-    "spring.sql.init.mode=never",
-    "spring.jpa.hibernate.ddl-auto=none"
+    "spring.datasource.url=jdbc:mysql://localhost:3307/ProcessToolsDB_Test",
+    "spring.datasource.username=admin",
+    "spring.datasource.password=password123",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.sql.init.mode=never"
 })
-
 public class CategoryRepositoryTest {
-  
-  @Autowired private Flyway flyway;
   @Autowired private DataSource dataSource;
+  @Autowired private CategoryRepository repo;
 
   private JdbcTemplate jdbc;
-  private CategoryRepository repo;
 
   @BeforeEach
   void setUp() {
-      flyway.clean();
-      flyway.migrate();
       jdbc = new JdbcTemplate(dataSource);
-      repo = new CategoryRepository(jdbc);
-  }
-
-  @AfterEach
-  void tearDown() {
-      flyway.clean();
+    //   repo = new CategoryRepository(jdbc);
+       jdbc.update("DELETE FROM rsvp");
+    jdbc.update("DELETE FROM event_categories");
+    jdbc.update("DELETE FROM categories WHERE name NOT IN ('Social', 'Career', 'Hackathon', 'Meetup')");
   }
 
   // ---------- Helpers ----------
@@ -110,6 +103,11 @@ public class CategoryRepositoryTest {
     // Precondition: category exists and already linked to event(s)
     Long careerCategoryId = categoryId("Career");
     assertNotNull(careerCategoryId);
+
+    // make sure at least one event is linked to this category
+    jdbc.update("INSERT INTO events (event_id, name, date_time, location, description) VALUES (9999, 'Test Event', NOW(), 'Melbourne, VIC', 'Test Description')");
+     
+    jdbc.update("INSERT INTO event_categories (event_id, category_id) VALUES (9999, ?)", careerCategoryId);
 
     int beforeCategoryCount = countCategories();
     int beforeAssociatedEventCount = countEventCategoryLinksForCategory(careerCategoryId);
