@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import au.edu.rmit.sept.webapp.model.Event;
+import au.edu.rmit.sept.webapp.model.User;
 import au.edu.rmit.sept.webapp.model.Report;
 import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
@@ -56,5 +57,12 @@ public class AdminController {
         model.addAttribute("event", event);
         model.addAttribute("reports", reports);
         return "admin/adminReports";
+    }
+
+    @GetMapping("/users")
+    public String users (Model model) {
+        List<User> users = userService.getAllUsers();
+        model.addAttribute("users", users);
+        return "admin/userManagement";
     }
 }
