@@ -15,7 +15,8 @@
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
     import org.springframework.boot.test.context.SpringBootTest;
-    import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.cglib.core.Local;
+import org.springframework.jdbc.core.JdbcTemplate;
     import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,24 +130,36 @@ void cleanUp() {
         assertEquals(0, rsvpCount(e));
     }
 
-    // test fails due to time issues with LocalDateTime.now() being slightly different
-    // @Test
-    //     void findEventsByOrganiser_returnsOnlyFuture_sortedDescending() {
-    //         long user1 = userIdByEmail("dummy@example.com"); // ID = 1
-    //         long event1 = eventIdByName("Cloud Career Panel");
-    //         long event2 = eventIdByName("Hack Night");
+    @Test
+        void findEventsByOrganiser_returnsOnlyFuture_sortedDescending() {
 
-    //         repo.save(new RSVP(3L, user1, event1, LocalDateTime.now().plusHours(1)));
-    //         repo.save(new RSVP(4L, user1, event2, LocalDateTime.now().plusDays(1)));
-    //         List<Event> list = repo.findEventsByUserId(user1, "DESC");
-    //         assertFalse(list.isEmpty());
+            LocalDateTime now = LocalDateTime.now().withNano(0);
 
-    //         // no past ones
-    //         assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(LocalDateTime.now().minusSeconds(1))));
+            long user1 = userIdByEmail("dummy@example.com"); // ID = 1
+            long event1 = eventIdByName("Cloud Career Panel");
+            long event2 = eventIdByName("Hack Night");
 
-    //         // descending order
-    //         for (int i = 1; i < list.size(); i++) {
-    //             assertFalse(list.get(i).getDateTime().isAfter(list.get(i - 1).getDateTime()));
-    //         }
-    //     }
+            // Construct target events in order: DESC should show event 2 then event 1
+            jdbc.update("UPDATE events SET date_time = ? WHERE event_id = ?", now.plusDays(8), event2);
+            jdbc.update("UPDATE events SET date_time = ? WHERE event_id = ?", now.plusDays(6), event1);
+
+            //RSVP to 2 future events
+            repo.save(new RSVP(null, user1, event1, now));
+            repo.save(new RSVP(null, user1, event2, now));
+
+            List<Event> list = repo.findEventsByUserId(user1, "DESC");
+            assertFalse(list.isEmpty());
+
+            // no past ones
+            assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(now)));
+
+            // descending order
+            for (int i = 1; i < list.size(); i++) {
+                assertFalse(list.get(i).getDateTime().isAfter(list.get(i - 1).getDateTime()));
+            }
+
+            if (list.size() >= 2) {
+              assertTrue(list.get(0).getDateTime().isAfter(list.get(1).getDateTime()) || list.get(0).getDateTime().isEqual(list.get(1).getDateTime()));
+            }
+        }
     }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cglib.core.Local;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,21 +140,39 @@ void cleanUp() {
     boolean notMatchLocation = repo.checkEventExists(5L, "Cloud Career Panel", List.of("Career"), "Test Location");
     assertFalse(notMatchLocation);
   }
-  // test fails because of the time difference
-//   @Test
-//     void findEventsByOrganiser_returnsOnlyFuture_sortedAscending() {
-//         // organiser 5L owns the seeded events (one past + multiple future)
-//         List<Event> list = repo.findEventsByOrganiser(5L);
-//         assertFalse(list.isEmpty());
+  @Test
+    void findEventsByOrganiser_returnsOnlyFuture_sortedAscending() {
 
-//         // no past ones
-//         assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(LocalDateTime.now().minusMinutes(1))));
+        LocalDateTime now = LocalDateTime.now().withNano(0);
 
-//         // ascending order
-//         for (int i = 1; i < list.size(); i++) {
-//             assertFalse(list.get(i).getDateTime().isBefore(list.get(i - 1).getDateTime()));
-//         }
-//     }
+        // Make all events belong to organiserID 5 into the past
+        jdbc.update("UPDATE events SET date_time = ? WHERE created_by_user_id = 5", now.minusDays(10));
+
+        // Pick two events of organiserId 5 to be future fixtures
+        List<Long> fixtureIds = jdbc.queryForList("SELECT event_id FROM events WHERE created_by_user_id = 5 ORDER BY event_id LIMIT 2", Long.class);
+        assertTrue(fixtureIds.size() >= 2);
+
+        // Set deterministic features so that near < far => (ASC should show [near, far])
+        Long nearEventId = fixtureIds.get(0);
+        Long farEventId = fixtureIds.get(1);
+        LocalDateTime nearEventTime = now.plusHours(12);
+        LocalDateTime farEventTime = now.plusDays(8);
+
+        jdbc.update("UPDATE events SET date_time = ? WHERE event_id = ?", nearEventTime, nearEventId);
+        jdbc.update("UPDATE events SET date_time = ? WHERE event_id = ?", farEventTime, farEventId);
+
+        // organiser 5L owns the seeded events (one past + multiple future)
+        List<Event> list = repo.findEventsByOrganiser(5L);
+        assertFalse(list.isEmpty());
+
+        // no past ones
+        assertTrue(list.stream().allMatch(e -> e.getDateTime().isAfter(now)));
+
+        // ascending order
+        for (int i = 1; i < list.size(); i++) {
+            assertFalse(list.get(i).getDateTime().isBefore(list.get(i - 1).getDateTime()));
+        }
+    }
 
   @Test
   void findEventsByIdAndOrganiser_returnsNull_forWrongOwner() {
