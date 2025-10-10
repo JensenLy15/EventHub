@@ -36,6 +36,9 @@ public class SecurityConfig {
 
                 //only admin can access user management pages
                 .requestMatchers("/users/**").hasRole("ADMIN")
+
+                //only admin can access admin pages
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
