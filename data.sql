@@ -15,8 +15,8 @@ VALUES
 ('Dummy5', 'dummy5@example.com', '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'organiser','active'),
 ('Dummy6',  'dummy6@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'organiser',   'active'),
 ('Dummy7' ,  'dummy7@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'admin',    'active'),
-('Dummy8' ,  'dummy8@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',    'banned');
-
+('Dummy8' ,  'dummy8@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',    'banned'),
+('Dummy9' ,  'dummy9@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',    'suspended');
 
 INSERT IGNORE INTO events (
   name, description, created_by_user_id, date_time, location, capacity, price,

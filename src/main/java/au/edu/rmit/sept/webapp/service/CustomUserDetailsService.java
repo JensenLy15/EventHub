@@ -30,15 +30,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         
         if ("banned".equals(user.getStatus())) {
-            throw new UsernameNotFoundException("User account is banned");
-            // throw new DisabledException("BANNED");
+            // throw new UsernameNotFoundException("User account is banned");
+            throw new DisabledException("BANNED");
 
         }
 
         // Check if user is suspended
         if ("suspended".equals(user.getStatus())) {
-            throw new UsernameNotFoundException("User account is suspended");
-            // throw new DisabledException("SUSPENDED");
+            // throw new UsernameNotFoundException("User account is suspended");
+            throw new DisabledException("SUSPENDED");
         }
 
         // convert role to Spring Security format (ROLE_STUDENT, ROLE_ORGANISER, ROLE_ADMIN)

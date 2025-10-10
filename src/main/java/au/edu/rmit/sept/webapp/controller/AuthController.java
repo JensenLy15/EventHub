@@ -1,6 +1,7 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import au.edu.rmit.sept.webapp.model.User;
 import au.edu.rmit.sept.webapp.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AuthController {
@@ -22,8 +25,22 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String loginPage() {
-        return "login";
+    public String loginPage(HttpServletRequest request, Model model) {
+        // return "login";
+          HttpSession session = request.getSession(false);
+    
+    if (session != null) {
+        // Get the authentication exception from session
+        Object authException = session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        
+        if (authException != null) {
+            model.addAttribute("errorMessage", authException.toString());
+            // Remove it from session after reading
+            session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        }
+    }
+    
+    return "login";
     }
 
     @GetMapping("/signup")
