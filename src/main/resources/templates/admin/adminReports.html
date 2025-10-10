@@ -46,6 +46,20 @@
               <td th:text="${r.userId}">User ID</td>
               <td th:text="${r.note}">Description</td>
               <td th:text="${r.status}">Status</td>
+              <td>
+                <div style="display:flex;">
+                  <form th:action="@{|/admin/report/${r.reportId}/open|}" method="post">
+                    <button type="submit" class="btn btn-blue">Open</button>
+                  </form>
+                  <form th:action="@{|/admin/report/${r.reportId}/under_review|}" method="post">
+                    <button type="submit" class="btn btn-yellow">Under Review</button>
+                  </form>
+                  <form th:action="@{|/admin/report/${r.reportId}/resolved|}" method="post">
+                    <button type="submit" class="btn btn-green">Resolve</button>
+                  </form>
+                </div>
+              </td>
+              </script>
             </tr>
           </tbody>
         </table>
