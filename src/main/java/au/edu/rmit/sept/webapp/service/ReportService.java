@@ -2,6 +2,7 @@ package au.edu.rmit.sept.webapp.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -18,8 +19,12 @@ public class ReportService {
         this.reportRepository = reportRepository;
     }
 
-    public List<Report> getReportsByEventID (long eventId){ 
+    public List<Report> getReportsByEventID (Long eventId){ 
         return reportRepository.getReportsByEvent(eventId);
+    }
+    
+    public Report findById (Long reportId){ 
+        return reportRepository.getReportByID(reportId);
     }
 
     public boolean submitReport(Long userId, Long eventId, String note) {
@@ -29,5 +34,13 @@ public class ReportService {
         report.setNote(note);
         report.setCreatedAt(LocalDateTime.now());
         return reportRepository.addReport(report); 
+    }
+
+    public Map<String, Long> getReportCountsByStatusForEvent(long eventId) {
+        return reportRepository.getReportCountsByStatusForEvent(eventId);
+    }
+
+    public boolean updateReportStatus(Long reportId, String newStatus){
+        return reportRepository.updateReportStatus(reportId, newStatus);
     }
 }
