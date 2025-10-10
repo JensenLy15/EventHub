@@ -21,12 +21,15 @@
             </span>
         </div> -->
 
-        <div th:if="${param.error}" class="alert alert-error">
+        <!-- <div th:if="${param.error}" class="alert alert-error">
     <span th:text="${#lists.isEmpty(param.message) ? 
                     'Invalid email or password. Please try again.' : 
                     param.message[0]}"></span>
-</div>
-
+</div> -->
+ <div th:if="${param.error}" class="alert alert-error">
+            <span th:if="${errorMessage}" th:text="${errorMessage}"></span>
+            <span th:unless="${errorMessage}">Invalid email or password. Please try again.</span>
+        </div>
 
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
