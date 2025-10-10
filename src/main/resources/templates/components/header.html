@@ -24,6 +24,10 @@
        
 
           <div sec:authorize="isAuthenticated()">
+            <div sec:authorize="hasRole('ADMIN')">
+              <a th:href="@{/admin/dashboard}" class="nav-button user" style="margin-right: 1rem;">ADMIN DASHBOARD</a>
+            </div>
+
            <div sec:authorize="hasRole('ORGANISER')">
               <a th:href="@{/organiser/dashboard}" class="nav-button user" style="margin-right: 1rem;">DASHBOARD</a>
             </div>
