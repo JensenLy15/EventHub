@@ -47,6 +47,12 @@ public class MainPageController {
      * @param model      Spring model to pass data to the view.
      * @return the "index" view for rendering the main page.
      */
+
+//      @GetMapping("/")
+// public String mainpage() {
+//     return "index";
+// }
+
   @GetMapping("/")
   public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model ) {
     List<Event> events = eventService.getUpcomingEvents();

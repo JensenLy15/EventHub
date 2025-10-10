@@ -6,10 +6,22 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:mysql://localhost:3307/ProcessToolsDB_Test",
+    "spring.datasource.username=admin",
+    "spring.datasource.password=password123",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.sql.init.mode=never"
+})
 class UserRepositoryTest {
 
   @Autowired JdbcTemplate jdbc;
