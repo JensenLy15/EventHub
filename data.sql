@@ -8,12 +8,14 @@ INSERT IGNORE INTO categories (name) VALUES
 
 INSERT IGNORE INTO users (name, email, password, role, status)
 VALUES
-('Dummy',  'dummy@example.com',  'password123', 'student',  'active'),
-('Dummy2', 'dummy2@example.com', 'password123', 'student',  'active'),
-('Dummy3', 'dummy3@example.com', 'password123', 'student',  'active'),
-('Dummy4', 'dummy4@example.com', 'password123', 'student',  'active'),
-('Dummy5', 'dummy5@example.com', 'password123', 'organiser','active'),
-('Dummy7', 'dummy7@example.com', 'password123', 'admin',    'active');
+('Dummy',  'dummy@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',  'active'),
+('Dummy2', 'dummy2@example.com', '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',  'active'),
+('Dummy3', 'dummy3@example.com', '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',  'active'),
+('Dummy4', 'dummy4@example.com', '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',  'active'),
+('Dummy5', 'dummy5@example.com', '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'organiser','active'),
+('Dummy6',  'dummy6@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'organiser',   'active'),
+('Dummy7' ,  'dummy7@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'admin',    'active'),
+('Dummy8' ,  'dummy8@example.com',  '$2a$10$CG.8xKAlPySkRUPmMbkdOe40AQOfgMoTg2u7KvOMc8MTI/NTb3pAu', 'student',    'banned');
 
 
 INSERT IGNORE INTO events (
