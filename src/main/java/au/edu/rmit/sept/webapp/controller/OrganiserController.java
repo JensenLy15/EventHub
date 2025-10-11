@@ -1,15 +1,18 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.repository.RsvpRepository;
 import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/organiser")

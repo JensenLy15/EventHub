@@ -49,6 +49,7 @@ public class Event {
   private String agenda;
   private String speakers;
   private String dressCode;
+  private boolean eventStatus; 
 
   public Event() {
     this.eventId = 0L;
@@ -65,6 +66,7 @@ public class Event {
     this.agenda = "";
     this.speakers = "";
     this.dressCode = "";
+    this.eventStatus = true; 
   }
 
 
@@ -132,6 +134,9 @@ public class Event {
   public void setDressCode(String dressCode) {
     this.dressCode = dressCode;
   }
+  public void setEventStatus(boolean eventStatus){
+    this.eventStatus = eventStatus; 
+  }
   
   // ===== Getters =====
   public String getImageUrl() { return imageUrl; } 
@@ -148,4 +153,5 @@ public class Event {
   public String getAgenda() { return agenda; }
   public String getSpeakers() { return speakers; }
   public String getDressCode() { return dressCode; }
+  public boolean getEventStatus(){ return eventStatus; }
 }

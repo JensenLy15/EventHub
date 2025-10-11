@@ -411,6 +411,7 @@ public class EventRepository {
                   event.setAgenda(rs.getString("agenda"));
                   event.setSpeakers(rs.getString("speakers"));
                   event.setDressCode(rs.getString("dress_code"));
+                  event.setEventStatus(rs.getBoolean("event_status"));
                   map.put(id, event);
               }
               String cat = rs.getString("category_name");
