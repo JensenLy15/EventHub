@@ -93,6 +93,14 @@
               >
                 Edit
               </a>
+
+              <form th:if="(${ev.reportCounts['open'] ?: 0} + ${ev.reportCounts['under_review'] ?: 0}) > 0"
+                    th:action="@{'/admin/event/dismiss/' + ${ev.event.eventId}}"
+                    method="post"
+                    class="inline"
+                    onsubmit="return confirm('Are you sure you want to dismiss this event?');">
+                  <button type="submit" class="btn btn-blue">Dismiss</button>
+              </form>
               
               <form
                 th:action="@{'/admin/event/softdelete/' + ${ev.event.eventId}}"
