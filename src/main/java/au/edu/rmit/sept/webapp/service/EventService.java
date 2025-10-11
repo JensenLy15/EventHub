@@ -120,6 +120,13 @@ public class EventService {
   }
 
   /**
+   * restore soft deleted events
+   */
+  public void restoreEvent(Long eventId) {
+    eventRepo.restoreEvent(eventId);
+  }
+
+  /**
    * filter events based on a given category ID.
    */
   public List<Event> filterEventsByCategory(Long categoryId)

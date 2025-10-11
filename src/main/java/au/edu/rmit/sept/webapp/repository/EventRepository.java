@@ -290,7 +290,7 @@ public class EventRepository {
     jdbcTemplate.update(deleteEventSql, eventId);
   }
 
-  // soft delete and event
+  // soft delete an event
   public void softDeleteEvent(Long eventId)
   {
 
@@ -345,6 +345,14 @@ public class EventRepository {
         return new ArrayList<>(events.values());
       });
     }
+
+  // restore a soft deleted event
+  public void restoreEvent(Long eventId)
+  {
+
+    String sql = "UPDATE events SET event_status = TRUE WHERE event_id = ?";
+    jdbcTemplate.update(sql, eventId);
+  }
 
   // filter events by category
   public List<Event> filterEventsByCategory(Long categoryId)

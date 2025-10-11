@@ -36,7 +36,8 @@
               <td th:text="${ev.createdByUserId}">Organiser</td>
               <td>
                 <div style="display:flex; gap:0.5rem;">
-                  <form th:action="@{|/admin/event/restore/${ev.eventId}|}" method="post" th:object="${ev}">
+                  <form th:action="@{|/admin/event/bin/restore/${ev.eventId}|}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <button type="submit" class="btn btn-blue">Restore</button>
                   </form>
 

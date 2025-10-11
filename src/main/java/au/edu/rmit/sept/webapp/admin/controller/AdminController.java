@@ -188,4 +188,19 @@ public class AdminController {
         model.addAttribute("deletedEvents", deletedEvents);
         return "admin/eventBin"; 
     }
+
+    //restore soft deleted events 
+    @PostMapping("/event/bin/restore/{id}")
+    public String restoreEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
+    {
+        Event event = eventService.findById(eventId);
+        if (event == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
+            return "redirect:/admin/dashboard";
+        }
+
+        eventService.restoreEvent(eventId);
+        redirectAttributes.addFlashAttribute("successMessage", "Event restored");
+        return "redirect:/admin/event/bin";
+    }
 }
