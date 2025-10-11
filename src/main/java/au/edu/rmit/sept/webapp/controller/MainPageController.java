@@ -42,43 +42,85 @@ public class MainPageController {
      * - Builds a map of RSVP statuses for the current user across all events.
      * - Fetches all categories for display in filter options.
      * - Adds events, categories, RSVP statuses, and selected category to the model.
-     *
+     * @param searchQuery Optional search query parameter (null = no search filter).
      * @param categoryId Optional category filter parameter (null = show all events).
      * @param model      Spring model to pass data to the view.
      * @return the "index" view for rendering the main page.
      */
 
-//      @GetMapping("/")
-// public String mainpage() {
+
+//   @GetMapping("/")
+//   public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model ) {
+//     List<Event> events = eventService.getUpcomingEvents();
+// Long currentUserId = currentUserService.getCurrentUserId();
+
+
+//     // Map to hold RSVP status for each event
+//     Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
+//     for (Event event : events) {
+//         boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
+//         rsvpStatusMap.put(event.getEventId(), hasRsvped);
+//     }
+//     // Apply category filter if provided
+//     if (categoryId != null) {
+//         events = eventService.filterEventsByCategory(categoryId);
+//     } else {
+//         events = eventService.getUpcomingEvents();
+//     }
+//     // Get all categories for filter options
+//     List<EventCategory> categories = categoryService.getAllCategories();
+//     model.addAttribute("events", events);
+//     model.addAttribute("currentUserId", currentUserId);
+//     model.addAttribute("rsvpStatusMap", rsvpStatusMap);
+
+//     model.addAttribute("categories", categories);
+//     model.addAttribute("selectedCategoryId", categoryId);
+
 //     return "index";
-// }
+//   }
 
-  @GetMapping("/")
-  public String mainpage(@RequestParam(name = "categoryId", required = false) Long categoryId, Model model ) {
-    List<Event> events = eventService.getUpcomingEvents();
-Long currentUserId = currentUserService.getCurrentUserId();
 
+    @GetMapping("/")
+  public String mainpage(
+      @RequestParam(name = "categoryId", required = false) Long categoryId,
+      @RequestParam(name = "search", required = false) String searchQuery,
+      Model model) {
+    
+    Long currentUserId = currentUserService.getCurrentUserId();
+    List<Event> events;
+
+    // Apply filters based on parameters
+    if (searchQuery != null && !searchQuery.trim().isEmpty() && categoryId != null) {
+      // Both search and category filter
+      events = eventService.searchAndFilterEvents(searchQuery.trim(), categoryId);
+    } else if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+      // Only search filter
+      events = eventService.searchEvents(searchQuery.trim());
+    } else if (categoryId != null) {
+      // Only category filter
+      events = eventService.filterEventsByCategory(categoryId);
+    } else {
+      // No filters - show all upcoming events
+      events = eventService.getUpcomingEvents();
+    }
 
     // Map to hold RSVP status for each event
     Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
     for (Event event : events) {
-        boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
-        rsvpStatusMap.put(event.getEventId(), hasRsvped);
+      boolean hasRsvped = rsvpRepository.checkUserAlreadyRsvped(currentUserId, event.getEventId());
+      rsvpStatusMap.put(event.getEventId(), hasRsvped);
     }
-    // Apply category filter if provided
-    if (categoryId != null) {
-        events = eventService.filterEventsByCategory(categoryId);
-    } else {
-        events = eventService.getUpcomingEvents();
-    }
+
     // Get all categories for filter options
     List<EventCategory> categories = categoryService.getAllCategories();
+    
+    // Add attributes to model
     model.addAttribute("events", events);
     model.addAttribute("currentUserId", currentUserId);
     model.addAttribute("rsvpStatusMap", rsvpStatusMap);
-
     model.addAttribute("categories", categories);
     model.addAttribute("selectedCategoryId", categoryId);
+    model.addAttribute("searchQuery", searchQuery != null ? searchQuery.trim() : "");
 
     return "index";
   }

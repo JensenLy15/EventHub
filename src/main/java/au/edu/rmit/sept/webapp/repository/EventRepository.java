@@ -461,6 +461,107 @@ public int updateEventWithAllExtraInfo(Event event, List<Long> categoryIds) {
   }
   return rows;
 }
+
+
+// Replace the searchEvents and searchAndFilterEvents methods in EventRepository.java
+
+/**
+ * Search for events by keyword in name only.
+ * Returns upcoming events only.
+ */
+public List<Event> searchEvents(String searchQuery) {
+  String sql = """
+    SELECT e.*, c.name AS category_name
+    FROM events e
+    LEFT JOIN event_categories ec ON e.event_id = ec.event_id
+    LEFT JOIN categories c ON ec.category_id = c.category_id
+    WHERE e.date_time >= NOW()
+      AND LOWER(e.name) LIKE LOWER(CONCAT('%', ?, '%'))
+    ORDER BY e.date_time ASC
+  """;
+
+  return jdbcTemplate.query(sql, ps -> ps.setString(1, searchQuery), rs -> {
+    Map<Long, Event> map = new LinkedHashMap<>();
+    while (rs.next()) {
+      Long id = rs.getLong("event_id");
+      Event event = map.get(id);
+      if (event == null) {
+        event = new Event(
+          id,
+          rs.getString("name"),
+          rs.getString("description"),
+          rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+          rs.getTimestamp("date_time").toLocalDateTime(),
+          rs.getString("location"),
+          new ArrayList<>(), // categories
+          rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+          rs.getBigDecimal("price")
+        );
+        event.setDetailedDescription(rs.getString("detailed_description"));
+        event.setAgenda(rs.getString("agenda"));
+        event.setSpeakers(rs.getString("speakers"));
+        event.setDressCode(rs.getString("dress_code"));
+        map.put(id, event);
+      }
+      String cat = rs.getString("category_name");
+      if (cat != null) {
+        event.getCategory().add(cat);
+      }
+    }
+    return new ArrayList<>(map.values());
+  });
+}
+
+/**
+ * Search and filter events by both keyword (name only) and category.
+ * Returns upcoming events only.
+ */
+public List<Event> searchAndFilterEvents(String searchQuery, Long categoryId) {
+  String sql = """
+    SELECT e.*, c.name AS category_name
+    FROM events e
+    INNER JOIN event_categories ec ON e.event_id = ec.event_id
+    LEFT JOIN categories c ON ec.category_id = c.category_id
+    WHERE e.date_time >= NOW()
+      AND ec.category_id = ?
+      AND LOWER(e.name) LIKE LOWER(CONCAT('%', ?, '%'))
+    ORDER BY e.date_time ASC
+  """;
+
+  return jdbcTemplate.query(sql, ps -> {
+    ps.setLong(1, categoryId);
+    ps.setString(2, searchQuery);
+  }, rs -> {
+    Map<Long, Event> map = new LinkedHashMap<>();
+    while (rs.next()) {
+      Long id = rs.getLong("event_id");
+      Event event = map.get(id);
+      if (event == null) {
+        event = new Event(
+          id,
+          rs.getString("name"),
+          rs.getString("description"),
+          rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+          rs.getTimestamp("date_time").toLocalDateTime(),
+          rs.getString("location"),
+          new ArrayList<>(), // categories
+          rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+          rs.getBigDecimal("price")
+        );
+        event.setDetailedDescription(rs.getString("detailed_description"));
+        event.setAgenda(rs.getString("agenda"));
+        event.setSpeakers(rs.getString("speakers"));
+        event.setDressCode(rs.getString("dress_code"));
+        map.put(id, event);
+      }
+      String cat = rs.getString("category_name");
+      if (cat != null) {
+        event.getCategory().add(cat);
+      }
+    }
+    return new ArrayList<>(map.values());
+  });
+}
 }
 
 
