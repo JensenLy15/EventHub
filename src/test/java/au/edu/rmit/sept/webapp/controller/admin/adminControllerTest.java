@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 
 import au.edu.rmit.sept.webapp.admin.controller.AdminController;
 import au.edu.rmit.sept.webapp.model.Event;
@@ -145,6 +146,46 @@ class AdminControllerTest {
 
         Mockito.verify(eventService).restoreEvent(1L);
     }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMIN"})
+    void dismissEvent_RedirectsToDashboard_WhenReportsResolved() throws Exception {
+        Mockito.when(eventService.findById(1L)).thenReturn(event1);
+        Mockito.when(reportService.resolveAllByEvent(1L)).thenReturn(true);
+
+        mockMvc.perform(post("/admin/event/dismiss/1").with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/dashboard"));
+
+        // Verify resolveAllByEvent was called
+        Mockito.verify(reportService).resolveAllByEvent(1L);
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMIN"})
+    void dismissEvent_ShowsError_WhenReportsNotResolved() throws Exception {
+        Mockito.when(eventService.findById(1L)).thenReturn(event1);
+        Mockito.when(reportService.resolveAllByEvent(1L)).thenReturn(false);
+
+        mockMvc.perform(post("/admin/event/dismiss/1").with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/dashboard"))
+            .andExpect(flash().attribute("errorMessage", "Something went wrong!"));
+
+        Mockito.verify(reportService).resolveAllByEvent(1L);
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMIN"})
+    void dismissEvent_ShowsError_WhenEventNotFound() throws Exception {
+        Mockito.when(eventService.findById(999L)).thenReturn(null);
+
+        mockMvc.perform(post("/admin/event/dismiss/999").with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/dashboard"))
+            .andExpect(flash().attribute("errorMessage", "Event not found"));
+    }
+
 }
 
 
