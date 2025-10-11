@@ -186,6 +186,19 @@ class AdminControllerTest {
             .andExpect(flash().attribute("errorMessage", "Event not found"));
     }
 
+    @Test
+    @WithMockUser(username="admin", roles={"ADMIN"})
+    void deleteEventPermanently_DeletesAndRedirectsToBin() throws Exception {
+        Mockito.when(eventService.findById(1L)).thenReturn(event1);
+
+        mockMvc.perform(post("/admin/event/bin/delete/1").with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/admin/event/bin"))
+               .andExpect(flash().attribute("successMessage", "Event deleted"));
+
+        Mockito.verify(eventService).deleteEventbyId(1L);
+    }
+
 }
 
 

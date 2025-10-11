@@ -358,4 +358,44 @@ void cleanUp() {
     List<Event> upcoming = repo.findUpcomingEventsSorted();
     assertFalse(upcoming.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
   }
+
+
+  @Test
+  void deleteEventbyId_also_removes_rsvps_and_reports() {
+    Event e = baseEvent("TestCascadeDelete", "TestLoc", LocalDateTime.now().plusDays(7).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+    Long id = saved.getEventId();
+
+    // create related rows: rsvp and report
+    Long existingUserId = jdbc.queryForObject("SELECT user_id FROM users LIMIT 1", Long.class);
+    jdbc.update("INSERT INTO rsvp (user_id, event_id) VALUES (?, ?)", existingUserId, id);
+    jdbc.update("INSERT INTO reports (user_id, event_id, note, reportStatus) VALUES (?, ?, ?, ?)", existingUserId, id, "issue", "open");
+
+    // sanity checks
+    Integer rsvpCount = jdbc.queryForObject("SELECT COUNT(*) FROM rsvp WHERE event_id = ?", Integer.class, id);
+    Integer reportCount = jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE event_id = ?", Integer.class, id);
+    assertNotNull(rsvpCount);
+    assertNotNull(reportCount);
+    assertEquals(1, rsvpCount.intValue());
+    assertEquals(1, reportCount.intValue());
+
+    // perform permanent delete
+    repo.deleteEventbyId(id);
+
+    // assert event removed
+    Integer evCount = jdbc.queryForObject("SELECT COUNT(*) FROM events WHERE event_id = ?", Integer.class, id);
+    assertNotNull(evCount);
+    assertEquals(0, evCount.intValue());
+
+    // assert join and related rows removed
+    assertEquals(0, countJoinRows(id), "Join rows should be removed");
+    Integer rsvpAfter = jdbc.queryForObject("SELECT COUNT(*) FROM rsvp WHERE event_id = ?", Integer.class, id);
+    Integer reportAfter = jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE event_id = ?", Integer.class, id);
+    assertNotNull(rsvpAfter);
+    assertNotNull(reportAfter);
+    assertEquals(0, rsvpAfter.intValue());
+    assertEquals(0, reportAfter.intValue());
+  }
 }
