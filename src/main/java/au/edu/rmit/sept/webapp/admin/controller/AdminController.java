@@ -203,4 +203,19 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("successMessage", "Event restored");
         return "redirect:/admin/event/bin";
     }
+
+    @PostMapping("/event/dismiss/{id}")
+    public String dismissEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
+    {
+        Event event = eventService.findById(eventId);
+        if (event == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
+            return "redirect:/admin/dashboard";
+        }
+
+        if(!reportService.resolveAllByEvent(eventId)){
+            redirectAttributes.addFlashAttribute("errorMessage", "Something went wrong!");
+        }
+        return "redirect:/admin/dashboard";
+    }
 }
