@@ -30,12 +30,16 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
-  <dependency>
-          <!-- mysql dependencies-->
-            <groupId>mysql</groupId>
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+    <version>9.4.0</version>
+</dependency>
+     <!-- <dependency>
+                    <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.28</version>
-        </dependency>
+            <version>8.0.33</version>
+     </dependency> -->
        
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -79,16 +83,17 @@
         <version>5.13.0</version> <!-- or newer -->
         <scope>test</scope>
       </dependency>
+
       <dependency>
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
-        <version>1.15.10</version> <!-- or newer -->
+        <version>1.17.7</version> <!-- just change this to newer ver old ver is deprecia and cant do test -->
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy-agent</artifactId>
-        <version>1.15.10</version> <!-- or newer -->
+        <version>1.17.7</version> <!-- just change this to newer ver -->
         <scope>test</scope>
       </dependency>
 
