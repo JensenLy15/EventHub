@@ -196,7 +196,7 @@ public class AdminController {
         Event event = eventService.findById(eventId);
         if (event == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
-            return "redirect:/admin/dashboard";
+            return "redirect:/admin/event/bin";
         }
 
         eventService.restoreEvent(eventId);
@@ -211,13 +211,27 @@ public class AdminController {
         Event event = eventService.findById(eventId);
         if (event == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
-            return "redirect:/admin/dashboard";
+            return "redirect:/admin/event/bin";
         }
 
         eventService.deleteEventbyId(eventId);
         redirectAttributes.addFlashAttribute("successMessage", "Event deleted");
         return "redirect:/admin/event/bin";
     }
+
+    // views soft deleted event details
+    @GetMapping("/event/bin/view/{id}")
+    public String viewDeletedEvent(@PathVariable("id") Long eventId, Model model, RedirectAttributes redirectAttributes)
+    {
+        Event event = eventService.findById(eventId);
+        if (event == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
+            return "redirect:/admin/event/bin";
+        }
+        model.addAttribute("event", event);
+        return "eventDetail"; 
+    }
+
 
     @PostMapping("/event/dismiss/{id}")
     public String dismissEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
