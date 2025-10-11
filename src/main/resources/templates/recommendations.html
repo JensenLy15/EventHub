@@ -16,12 +16,29 @@
           Based on your interests, here are some picks we think you’ll enjoy.
         </p>
       </div>
+
+      <div
+        class="recommend-summary"
+        th:if="${userPreferredCategories != null and !#lists.isEmpty(recommendedEvents)}"
+      >
+        <p th:if="${!#lists.isEmpty(userPreferredCategories)}">
+          These events are selected based on your preferred categories:
+          <span
+            th:text="${#strings.arrayJoin(userPreferredCategories, ', ')}"
+          ></span>
+        </p>
+      </div>
       <!-- Showing event cards-->
       <div class="cards">
         <!--When there are no events -->
         <div class="empty-events" th:if="${#lists.isEmpty(recommendedEvents)}">
           No recommended events found. Please adjust your category preference in
-          the User Dashboard.
+          <a
+            th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps?tab=profile'}"
+            class="link-dashboard"
+          >
+            the User Dashboard </a
+          >.
         </div>
 
         <article
@@ -136,6 +153,34 @@
           </div>
         </article>
       </div>
+      <section class="testimonials">
+        <h3>What Students Are Saying</h3>
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <p class="quote">
+              "I discovered so many amazing events I wouldn’t have known about.
+              The recommendations are spot on!"
+            </p>
+            <div class="author">— Sarah L., Software Engineering Student</div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="quote">
+              "The RSVP system is so smooth, and I love how it matches events
+              with my interests."
+            </p>
+            <div class="author">— Daniel T., RMIT Hackathon Enthusiast</div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="quote">
+              "EventHub helped me connect with my club community. It’s like
+              having a personal campus guide."
+            </p>
+            <div class="author">— Mia K., Business Club Member</div>
+          </div>
+        </div>
+      </section>
       <a th:href="@{/}" class="btn btn-light">Back to Home</a>
       <footer th:replace="~{components/footer :: footer}"></footer>
       <div id="eventModal" class="modal">

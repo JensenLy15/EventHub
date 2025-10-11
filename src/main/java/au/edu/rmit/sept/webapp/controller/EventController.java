@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
@@ -225,15 +226,25 @@ public class EventController {
         List<Long> preferredCategoryIds = userService.getUserPreferredCategories(currentUserId);
         List<Event> recommendedEvents = eventService.getRecommendedEvents(preferredCategoryIds);
 
-       Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
+      Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
         for (Event event : recommendedEvents) {
             boolean hasRsvped = rsvpService.hasUserRsvped(currentUserId, event.getEventId());
             rsvpStatusMap.put(event.getEventId(), hasRsvped);
-}
+      }
+      // Map category ids to names
+      List<EventCategory> allCategories = categoryService.getAllCategories();
+      Map<Long, String> categoryMap = allCategories.stream()
+        .collect(Collectors.toMap(EventCategory::getCategoryId, EventCategory::getName));
+
+      List<String> preferredCategoryNames = preferredCategoryIds.stream()
+        .map(categoryMap::get)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
 
         model.addAttribute("recommendedEvents", recommendedEvents);
         model.addAttribute("rsvpStatusMap", rsvpStatusMap);
         model.addAttribute("currentUserId", currentUserService.getCurrentUserId());
+        model.addAttribute("userPreferredCategories", preferredCategoryNames);
         return "recommendations";
     }
 
