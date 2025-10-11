@@ -40,6 +40,7 @@ CREATE TABLE events (
   agenda TEXT,
   speakers VARCHAR(255),
   dress_code VARCHAR(100),
+  event_status BOOLEAN NOT NULL DEFAULT TRUE,
 
   CONSTRAINT fk_event_user FOREIGN KEY (created_by_user_id)
     REFERENCES users(user_id)

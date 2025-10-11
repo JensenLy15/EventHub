@@ -163,4 +163,29 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
         return "redirect:/admin/dashboard";
     }
+
+
+    // handle softdelete event function
+    @PostMapping("/event/softdelete/{id}")
+    public String softDeleteEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
+    {
+        Event event = eventService.findById(eventId);
+        if (event == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Event not found");
+            return "redirect:/admin/dashboard";
+        }
+
+        eventService.softDeleteEventbyId(eventId);
+        redirectAttributes.addFlashAttribute("successMessage", "Event moved to bin");
+        return "redirect:/admin/dashboard";
+    }
+
+
+    // view recycle bin (soft-deleted events)
+    // @GetMapping("/event/bin")
+    // public String eventBin(Model model) {
+    //     List<Event> deletedEvents = eventService.getSoftDeletedEvents();
+    //     model.addAttribute("deletedEvents", deletedEvents);
+    //     return "admin/eventBin"; // create Thymeleaf view admin/eventBin.html
+    // }
 }

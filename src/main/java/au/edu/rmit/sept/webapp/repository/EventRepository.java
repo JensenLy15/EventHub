@@ -66,6 +66,7 @@ public class EventRepository {
         LEFT JOIN event_categories ec ON e.event_id = ec.event_id
         LEFT JOIN categories c ON ec.category_id = c.category_id
         WHERE e.date_time >= CURRENT_TIMESTAMP
+        AND e.event_status = TRUE
         ORDER BY e.date_time ASC
         """;
     
@@ -287,6 +288,14 @@ public class EventRepository {
 
     String deleteEventSql = "DELETE From events WHERE event_id = ?";
     jdbcTemplate.update(deleteEventSql, eventId);
+  }
+
+  // soft delete and event
+  public void softDeleteEvent(Long eventId)
+  {
+
+    String sql = "UPDATE events SET event_status = FALSE WHERE event_id = ?";
+    jdbcTemplate.update(sql, eventId);
   }
 
   // filter events by category

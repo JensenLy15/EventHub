@@ -105,6 +105,13 @@ public class EventService {
   }
 
   /**
+   * soft delete an event by its ID.
+   */
+  public void softDeleteEventbyId(long eventId) {
+     eventRepo.softDeleteEvent(eventId);
+  }
+
+  /**
    * filter events based on a given category ID.
    */
   public List<Event> filterEventsByCategory(Long categoryId)

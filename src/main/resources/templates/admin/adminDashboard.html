@@ -93,15 +93,24 @@
               >
                 Edit
               </a>
-
+              
               <form
+                th:action="@{'/admin/event/softdelete/' + ${ev.event.eventId}}"
+                 method="post"
+                 class="inline"
+                 onsubmit="return confirm('Are you sure you want to delete this event?');"
+               >
+                <button type="submit" class="btn btn-danger">Move to Bin</button>
+               </form>
+               
+              <!-- <form
                 th:action="@{'/event/delete/' + ${ev.event.eventId}}"
                 method="post"
                 class="inline"
                 onsubmit="return confirm('Are you sure you want to delete this event?');"
               >
                 <button type="submit" class="btn btn-danger">Delete</button>
-              </form>
+              </form> -->
             </div>
           </div>
         </article>
