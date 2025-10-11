@@ -59,22 +59,22 @@ public class MainPageControllerUnitTest {
     }
 
     /**
-     * Scenario: GET with no category filter
-     * Expects controller gets upcoming events twice: build RSVP map and display the list
-     * Model contains: upcoming events, rsvpStatusMap, categories, categoryId = null, currentUserId=5
+     * Scenario: GET with no category filter and no search query
+     * Expects controller gets upcoming events once for display
+     * Model contains: upcoming events, rsvpStatusMap, categories, categoryId = null, searchQuery = "", currentUserId=5
      */
     @Test
     void mainpage_withoutCategory_showsUpcomingEvents_andRsvpMap() {
         Model model = new ExtendedModelMap();
 
         var upcoming = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
-        when(eventService.getUpcomingEvents()).thenReturn(upcoming); // used twice by controller
+        when(eventService.getUpcomingEvents()).thenReturn(upcoming);
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(10L, "Tech"), cat(20L, "Networking")));
         when(currentUserService.getCurrentUserId()).thenReturn(5L);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
 
-        String view = controller.mainpage(null, model);
+        String view = controller.mainpage(null, null, model);
 
         assertThat(view).isEqualTo("index");
         assertThat(model.getAttribute("events")).isEqualTo(upcoming);
@@ -87,14 +87,15 @@ public class MainPageControllerUnitTest {
                         org.assertj.core.api.Assertions.tuple(20L, "Networking")
                 );
         assertThat(model.getAttribute("selectedCategoryId")).isNull();
+        assertThat(model.getAttribute("searchQuery")).isEqualTo("");
         assertThat(model.getAttribute("currentUserId")).isEqualTo(5L);
 
         @SuppressWarnings("unchecked")
         Map<Long, Boolean> rsvpMap = (Map<Long, Boolean>) model.getAttribute("rsvpStatusMap");
         assertThat(rsvpMap).containsEntry(1L, true).containsEntry(2L, false);
 
-        // Interactions
-        verify(eventService, times(2)).getUpcomingEvents();
+        // Interactions - now only called once
+        verify(eventService, times(1)).getUpcomingEvents();
         verify(categoryService).getAllCategories();
         verify(currentUserService).getCurrentUserId();
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
@@ -105,39 +106,36 @@ public class MainPageControllerUnitTest {
     /**
      * Scenario: GET "/?categoryId=8".
      * Expect:
-     *  - RSVP map is still built from the full upcoming list.
-     *  - Displayed events are from filterEventsByCategory(8).
+     *  - Events are filtered by category
+     *  - RSVP map is built from filtered events
      *  - Model echoes selectedCategoryId=8.
      */
     @Test
-    void mainpage_withCategory_filtersDisplayedEvents_andKeepsRsvpMapFromUpcoming() {
+    void mainpage_withCategory_filtersDisplayedEvents_andKeepsRsvpMapFromFiltered() {
         Model model = new ExtendedModelMap();
 
-        var upcomingForRsvp = List.of(event(1L, "Tech Talk"), event(2L, "Career Fair"));
         var filtered = List.of(event(2L, "Career Fair")); // only the matching category event
-        when(eventService.getUpcomingEvents()).thenReturn(upcomingForRsvp);
         when(eventService.filterEventsByCategory(8L)).thenReturn(filtered);
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(8L, "Tech")));
         when(currentUserService.getCurrentUserId()).thenReturn(5L);
-        when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
 
-        String view = controller.mainpage(8L, model);
+        String view = controller.mainpage(8L, null, model);
 
         assertThat(view).isEqualTo("index");
         assertThat(model.getAttribute("events")).isEqualTo(filtered);
         assertThat(model.getAttribute("selectedCategoryId")).isEqualTo(8L);
+        assertThat(model.getAttribute("searchQuery")).isEqualTo("");
 
-        // RSVP map still includes all upcoming events
+        // RSVP map includes filtered events
         @SuppressWarnings("unchecked")
         Map<Long, Boolean> rsvpMap = (Map<Long, Boolean>) model.getAttribute("rsvpStatusMap");
-        assertThat(rsvpMap).containsEntry(1L, true).containsEntry(2L, false);
+        assertThat(rsvpMap).containsEntry(2L, false);
 
-        verify(eventService).getUpcomingEvents(); // for RSVP map
-        verify(eventService).filterEventsByCategory(8L); // for displayed list
+        verify(eventService).filterEventsByCategory(8L);
+        verify(eventService, never()).getUpcomingEvents();
         verify(categoryService).getAllCategories();
         verify(currentUserService).getCurrentUserId();
-        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
         verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
     }
@@ -157,7 +155,7 @@ public class MainPageControllerUnitTest {
         when(categoryService.getAllCategories()).thenReturn(List.of(cat(99L, "All")));
         when(currentUserService.getCurrentUserId()).thenReturn(5L);
 
-        String view = controller.mainpage(null, model);
+        String view = controller.mainpage(null, null, model);
 
         assertThat(view).isEqualTo("index");
 
@@ -175,11 +173,81 @@ public class MainPageControllerUnitTest {
                 .extracting(EventCategory::getCategoryId, EventCategory::getName)
                 .containsExactly(tuple(99L, "All"));
 
-        // getUpcomingEvents called twice (RSVP + display path)
-        verify(eventService, times(2)).getUpcomingEvents();
+        assertThat(model.getAttribute("searchQuery")).isEqualTo("");
+
+        // getUpcomingEvents called once
+        verify(eventService, times(1)).getUpcomingEvents();
         verify(categoryService).getAllCategories();
         verify(currentUserService).getCurrentUserId();
         verify(rsvpRepository, never()).checkUserAlreadyRsvped(anyLong(), anyLong());
+        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
+    }
+
+    /**
+     * Scenario: GET "/?search=Tech"
+     * searchQuery is provided
+     */
+    @Test
+    void mainpage_withSearchQuery_showsSearchResults() {
+        Model model = new ExtendedModelMap();
+
+        var searchResults = List.of(event(1L, "Tech Talk"));
+        when(eventService.searchEvents("Tech")).thenReturn(searchResults);
+        when(categoryService.getAllCategories()).thenReturn(List.of(cat(10L, "Tech")));
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
+
+        String view = controller.mainpage(null, "Tech", model);
+
+        assertThat(view).isEqualTo("index");
+        assertThat(model.getAttribute("events")).isEqualTo(searchResults);
+        assertThat(model.getAttribute("searchQuery")).isEqualTo("Tech");
+        assertThat(model.getAttribute("selectedCategoryId")).isNull();
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvpMap = (Map<Long, Boolean>) model.getAttribute("rsvpStatusMap");
+        assertThat(rsvpMap).containsEntry(1L, true);
+
+        verify(eventService).searchEvents("Tech");
+        verify(eventService, never()).getUpcomingEvents();
+        verify(categoryService).getAllCategories();
+        verify(currentUserService).getCurrentUserId();
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
+        verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
+    }
+
+    /**
+     * Scenario: GET "/?search=Hack&categoryId=3"
+     * search and category filter are both provided
+     */
+    @Test
+    void mainpage_withSearchAndCategory_showsCombinedResults() {
+        Model model = new ExtendedModelMap();
+
+        var combinedResults = List.of(event(3L, "Hack Night"));
+        when(eventService.searchAndFilterEvents("Hack", 3L)).thenReturn(combinedResults);
+        when(categoryService.getAllCategories()).thenReturn(List.of(cat(3L, "Hackathon")));
+        when(currentUserService.getCurrentUserId()).thenReturn(5L);
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 3L)).thenReturn(false);
+
+        String view = controller.mainpage(3L, "Hack", model);
+
+        assertThat(view).isEqualTo("index");
+        assertThat(model.getAttribute("events")).isEqualTo(combinedResults);
+        assertThat(model.getAttribute("searchQuery")).isEqualTo("Hack");
+        assertThat(model.getAttribute("selectedCategoryId")).isEqualTo(3L);
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvpMap = (Map<Long, Boolean>) model.getAttribute("rsvpStatusMap");
+        assertThat(rsvpMap).containsEntry(3L, false);
+
+        verify(eventService).searchAndFilterEvents("Hack", 3L);
+        verify(eventService, never()).getUpcomingEvents();
+        verify(eventService, never()).searchEvents(anyString());
+        verify(eventService, never()).filterEventsByCategory(anyLong());
+        verify(categoryService).getAllCategories();
+        verify(currentUserService).getCurrentUserId();
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 3L);
         verifyNoMoreInteractions(eventService, categoryService, rsvpRepository, currentUserService);
     }
 }

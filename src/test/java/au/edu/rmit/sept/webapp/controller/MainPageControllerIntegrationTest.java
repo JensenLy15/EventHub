@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -89,10 +90,10 @@ public class MainPageControllerIntegrationTest {
   }
 
   /**
-     * GET "/" with no category filter:
+     * GET "/" with no category filter and no search:
      * - RSVP map built from upcoming events.
      * - Displayed events are the upcoming list.
-     * - Categories included, selectedCategoryId = null.
+     * - Categories included, selectedCategoryId = null, searchQuery = "".
      */
     @Test
     void rendersIndex_withUpcomingEvents_andRsvpMap() throws Exception {
@@ -112,8 +113,9 @@ public class MainPageControllerIntegrationTest {
                 .with(user("dummy@example.com").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
-                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories", "currentUserId"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories", "currentUserId", "searchQuery"))
                 .andExpect(model().attribute("selectedCategoryId", (Long) null))
+                .andExpect(model().attribute("searchQuery", ""))
                 .andExpect(model().attribute("currentUserId", 5L))
                 .andReturn();
 
@@ -131,7 +133,7 @@ public class MainPageControllerIntegrationTest {
                 );
 
         verify(currentUserService).getCurrentUserId();
-        verify(eventService, times(2)).getUpcomingEvents(); // RSVP build + display
+        verify(eventService, times(1)).getUpcomingEvents();
         verify(eventService, never()).filterEventsByCategory(anyLong());
         verify(categoryService).getAllCategories();
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
@@ -141,23 +143,17 @@ public class MainPageControllerIntegrationTest {
 
     /**
      * Filtered path (?categoryId=8):
-     * - RSVP map is still built from getUpcomingEvents()
-     * - Displayed events come from filterEventsByCategory(8)
+     * - Events filtered by category
+     * - RSVP map built from filtered events
      * - selectedCategoryId = 8
      */
     @Test
     void rendersIndex_withCategoryFilter_showsFilteredEvents_andRsvpMap() throws Exception {
-        var upcomingForRsvp = List.of(
-            event(1L, "Tech Talk", "Building 80", LocalDateTime.now().plusDays(1).withSecond(0).withNano(0)), 
-            event(2L, "Career Fair", "Building 10", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0))
-        );
         var filtered = List.of(
             event(2L, "Career Fair", "Building 10", LocalDateTime.now().plusDays(2).withSecond(0).withNano(0))
         );
-        when(eventService.getUpcomingEvents()).thenReturn(upcomingForRsvp);
         when(eventService.filterEventsByCategory(8L)).thenReturn(filtered);
         when(categoryService.getAllCategories()).thenReturn(List.of(category(8L, "Tech")));
-        when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
         when(rsvpRepository.checkUserAlreadyRsvped(5L, 2L)).thenReturn(false);
 
         MvcResult res = mvc.perform(get("/").param("categoryId", "8")
@@ -166,6 +162,7 @@ public class MainPageControllerIntegrationTest {
                 .andExpect(view().name("index"))
                 .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories"))
                 .andExpect(model().attribute("selectedCategoryId", 8L))
+                .andExpect(model().attribute("searchQuery", ""))
                 .andExpect(model().attribute("currentUserId", 5L))
                 .andReturn();
 
@@ -176,7 +173,7 @@ public class MainPageControllerIntegrationTest {
 
         @SuppressWarnings("unchecked")
         Map<Long, Boolean> rsvp = (Map<Long, Boolean>) res.getModelAndView().getModel().get("rsvpStatusMap");
-        assertThat(rsvp).containsEntry(1L, true).containsEntry(2L, false);
+        assertThat(rsvp).containsEntry(2L, false);
 
         @SuppressWarnings("unchecked")
         List<EventCategory> cats = (List<EventCategory>) res.getModelAndView().getModel().get("categories");
@@ -184,10 +181,9 @@ public class MainPageControllerIntegrationTest {
                 .containsExactly(tuple(8L, "Tech"));
 
         verify(currentUserService).getCurrentUserId();
-        verify(eventService).getUpcomingEvents();
+        verify(eventService, never()).getUpcomingEvents();
         verify(eventService).filterEventsByCategory(8L);
         verify(categoryService).getAllCategories();
-        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
         verify(rsvpRepository).checkUserAlreadyRsvped(5L, 2L);
     }
 
@@ -206,8 +202,9 @@ public class MainPageControllerIntegrationTest {
                 .with(user("dummy@example.com").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
-                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories", "currentUserId"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories", "currentUserId", "searchQuery"))
                 .andExpect(model().attribute("selectedCategoryId", (Long) null))
+                .andExpect(model().attribute("searchQuery", ""))
                 .andExpect(model().attribute("currentUserId", 5L))
                 .andReturn();
 
@@ -225,8 +222,94 @@ public class MainPageControllerIntegrationTest {
                 .containsExactly(tuple(99L, "All"));
 
         verify(currentUserService).getCurrentUserId();
-        verify(eventService, times(2)).getUpcomingEvents();
+        verify(eventService, times(1)).getUpcomingEvents();
         verify(categoryService).getAllCategories();
         verify(rsvpRepository, never()).checkUserAlreadyRsvped(anyLong(), anyLong());
     }
+
+    /**
+     * Search functionality test (?search=Tech)
+     * - Events filtered by search query
+     * - RSVP map built from search results
+     */
+    @Test
+    void rendersIndex_withSearchQuery_showsSearchResults() throws Exception {
+        var searchResults = List.of(
+            event(1L, "Tech Talk", "Building 80", LocalDateTime.now().plusDays(1).withSecond(0).withNano(0))
+        );
+        when(eventService.searchEvents("Tech")).thenReturn(searchResults);
+        when(categoryService.getAllCategories()).thenReturn(List.of(category(10L, "Tech")));
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 1L)).thenReturn(true);
+
+        MvcResult res = mvc.perform(get("/").param("search", "Tech")
+                .with(user("dummy@example.com").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories"))
+                .andExpect(model().attribute("selectedCategoryId", (Long) null))
+                .andExpect(model().attribute("searchQuery", "Tech"))
+                .andExpect(model().attribute("currentUserId", 5L))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Event> eventsOnPage = (List<Event>) res.getModelAndView().getModel().get("events");
+        assertThat(eventsOnPage).hasSize(1);
+        assertThat(eventsOnPage.get(0).getEventId()).isEqualTo(1L);
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvp = (Map<Long, Boolean>) res.getModelAndView().getModel().get("rsvpStatusMap");
+        assertThat(rsvp).containsEntry(1L, true);
+
+        verify(currentUserService).getCurrentUserId();
+        verify(eventService).searchEvents("Tech");
+        verify(eventService, never()).getUpcomingEvents();
+        verify(categoryService).getAllCategories();
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 1L);
+    }
+
+    /**
+     * Combined search and category filter (?search=Hack&categoryId=3)
+     * - Events filtered by both search and category
+     * - RSVP map built from combined results
+     */
+    @Test
+    void rendersIndex_withSearchAndCategory_showsCombinedResults() throws Exception {
+        var combinedResults = List.of(
+            event(3L, "Hack Night", "Fab Lab", LocalDateTime.now().plusDays(1).withSecond(0).withNano(0))
+        );
+        when(eventService.searchAndFilterEvents("Hack", 3L)).thenReturn(combinedResults);
+        when(categoryService.getAllCategories()).thenReturn(List.of(category(3L, "Hackathon")));
+        when(rsvpRepository.checkUserAlreadyRsvped(5L, 3L)).thenReturn(false);
+
+        MvcResult res = mvc.perform(get("/")
+                .param("search", "Hack")
+                .param("categoryId", "3")
+                .with(user("dummy@example.com").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attributeExists("events", "rsvpStatusMap", "categories"))
+                .andExpect(model().attribute("selectedCategoryId", 3L))
+                .andExpect(model().attribute("searchQuery", "Hack"))
+                .andExpect(model().attribute("currentUserId", 5L))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Event> eventsOnPage = (List<Event>) res.getModelAndView().getModel().get("events");
+        assertThat(eventsOnPage).hasSize(1);
+        assertThat(eventsOnPage.get(0).getEventId()).isEqualTo(3L);
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> rsvp = (Map<Long, Boolean>) res.getModelAndView().getModel().get("rsvpStatusMap");
+        assertThat(rsvp).containsEntry(3L, false);
+
+        verify(currentUserService).getCurrentUserId();
+        verify(eventService).searchAndFilterEvents("Hack", 3L);
+        verify(eventService, never()).getUpcomingEvents();
+        verify(eventService, never()).searchEvents(anyString());
+        verify(eventService, never()).filterEventsByCategory(anyLong());
+        verify(categoryService).getAllCategories();
+        verify(rsvpRepository).checkUserAlreadyRsvped(5L, 3L);
+    }
+
+    
 }
