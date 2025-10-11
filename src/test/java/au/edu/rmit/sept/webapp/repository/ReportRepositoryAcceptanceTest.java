@@ -1,7 +1,5 @@
 package au.edu.rmit.sept.webapp.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +7,9 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,5 +137,31 @@ class ReportRepositoryAcceptanceTest {
         long active = counts.getOrDefault("open", 0L) + counts.getOrDefault("under_review", 0L);
 
         assertEquals(2L, active, "Only open + under_review are active reports");
+    }
+
+    @Test
+    void resolveAllByEvent_ShouldReturnTrueAndUpdateStatusesWhenReportsExist() {
+        Long userId = createUser();
+        Long eventId = createEvent(userId, "Event To Resolve All");
+
+        createReport(userId, eventId, "open", "Report 1");
+        createReport(userId, eventId, "under_review", "Report 2");
+
+        boolean result = reportRepository.resolveAllByEvent(eventId);
+        assertTrue(result, "resolveAllByEvent should return true when reports exist");
+
+        List<Report> reports = reportRepository.getReportsByEvent(eventId);
+        for (Report r : reports) {
+            assertEquals("resolved", r.getStatus(), "All reports should be updated to 'resolved'");
+        }
+    }
+
+    @Test
+    void resolveAllByEvent_ShouldReturnFalseWhenNoReportsExist() {
+        Long userId = createUser();
+        Long eventId = createEvent(userId, "Event With No Reports");
+
+        boolean result = reportRepository.resolveAllByEvent(eventId);
+        assertFalse(result, "resolveAllByEvent should return false when no reports exist");
     }
 }
