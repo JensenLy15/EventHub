@@ -8,6 +8,7 @@
   --line: #e6e8ef;
   --chip: #f2f4f8;
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --rsvped-bg: #e6ffe6;
 }
 * {
   box-sizing: border-box;
@@ -85,7 +86,7 @@ body {
   text-decoration: underline;
 }
 
-/* Top bar */
+/* Top bar
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -113,7 +114,7 @@ body {
   margin-right: 8px;
   filter: invert(16%) sepia(89%) saturate(3063%) hue-rotate(50deg)
     brightness(95%) contrast(101%);
-}
+} */
 
 .filter-form {
   display: flex;
@@ -122,7 +123,7 @@ body {
   gap: 50px;
 }
 
-.search {
+/* .search {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -145,13 +146,13 @@ body {
   background: transparent;
   cursor: pointer;
   font-size: 18px;
-}
-.topbar-right .link {
+} */
+/* .topbar-right .link {
   margin-left: 16px;
   color: var(--brand);
   text-decoration: none;
   margin-right: 20px;
-}
+} */
 
 /* Hero */
 .hero {
@@ -335,6 +336,11 @@ body {
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
+}
+
+.card-rsvped {
+  background: var(--rsvped-bg);
+  border-color: #90EE90;
 }
 
 .card:hover {
@@ -874,11 +880,71 @@ body {
   border-radius: 30px;
 }
 .nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
   background-color: #00cf0d;
-  border-radius: 30px;
-  padding: 5px;
   color: white;
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.nav-button i {
+  font-size: 16px;
+}
+
+/* User navigation button style */
+.nav-button.user-nav {
+  background-color: #f8f9fa;
+  color: #00cf0d;
+  border: 1px solid #e2e8f0;
+}
+
+.nav-button.user-nav:hover {
+  background-color: #00cf0d;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* User info section */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 16px;
+}
+
+.username {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.username i {
+  color: #00cf0d;
+}
+
+/* Logout button */
+.nav-button.logout-btn {
+  background-color: transparent;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+}
+
+.nav-button.logout-btn:hover {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  border-color: #feb2b2;
 }
 .nav-button:hover {
   background-color: #00a60b;
@@ -902,4 +968,198 @@ body {
 .tab-btn.active {
   background: #000;
   color: #fff;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.75);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+}
+.topbar__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 40px;
+  animation: fadeSlideIn 0.4s ease-out;
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ====== Brand ====== */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.brand__logo {
+  width: 28px;
+  height: 28px;
+  color: #00cf0d;
+}
+.brand__name {
+  font-weight: 700;
+  font-size: 20px;
+  color: #00cf0d;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.brand:hover .brand__name {
+  color: #00a60b;
+  text-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+}
+
+/* ====== Search ====== */
+.search {
+  display: flex;
+  align-items: center;
+  background: #f7f9fc;
+  border-radius: 999px;
+  padding: 0 12px;
+  height: 44px;
+  border: 1px solid #e5e7eb;
+  width: 320px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.search__input {
+  flex: 1;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 0 44px 0 16px;
+  border-radius: 999px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.search__input:focus {
+  background: #fff;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
+}
+.search__mic {
+  margin-left: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ====== Actions / Buttons ====== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.actions__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.actions__group--auth {
+  gap: 12px;
+}
+
+.btn--primary {
+  background: #00cf0d;
+  color: #fff;
+}
+.btn--primary:hover {
+  background: #00a60b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+} /* (2) lift */
+.btn--ghost {
+  background: #fff;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+.btn--ghost:hover {
+  border-color: #cbd5e1;
+  background: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.btn--danger {
+  background: #ef4444;
+  color: #fff;
+}
+.btn--danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ====== User block & avatar ====== */
+.user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+}
+.user__welcome {
+  opacity: 0.7;
+  font-size: 14px;
+}
+.user__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #a78bfa;
+}
+
+/* ====== Animations ====== */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ====== Responsive tweaks ====== */
+@media (max-width: 900px) {
+  .topbar__inner {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+  .search {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+@media (max-width: 640px) {
+  .brand__name {
+    font-size: 18px;
+  }
+  .search__input {
+    height: 40px;
+  }
 }

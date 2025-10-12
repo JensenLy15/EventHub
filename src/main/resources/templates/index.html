@@ -56,6 +56,7 @@
         <article
           th:each="event : ${events}"
           class="card"
+          th:classappend="${rsvpStatusMap[event.eventId]} ? 'card-rsvped' : ''"
           th:if="${!#lists.isEmpty(events)}"
         >
           <div class="card-body">
@@ -102,7 +103,10 @@
           <div class="card-media">
             <div class="img-placeholder">
               <div class="placeholder-icon">
-                <img th:src="@{${event.imageUrl}}" alt="event image" class="event-card-image">
+                <img th:src="@{${event.displayImageUrl()}}" 
+                th:alt="${event.name + ' event image'}" 
+                class="event-card-image"
+                onerror="this.onerror=null;this.src='/meetup.jpg';">
               </div>
             </div>
           </div>  
