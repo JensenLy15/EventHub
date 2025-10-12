@@ -51,6 +51,10 @@ public class Event {
   private String dressCode;
   private boolean eventStatus; 
 
+  private Long deactivatedByAdminId;  
+  private String deactivationReason;
+  private java.time.LocalDateTime deactivationAt;
+
   public Event() {
     this.eventId = 0L;
     this.name = "";
@@ -137,7 +141,16 @@ public class Event {
   public void setEventStatus(boolean eventStatus){
     this.eventStatus = eventStatus; 
   }
-  
+  public void setDeactivatedByAdminId(Long id) { 
+    this.deactivatedByAdminId = id; 
+  }
+  public void setDeactivationReason(String reason) { 
+    this.deactivationReason = reason; 
+  }
+  public void setDeactivationAt(LocalDateTime dateTime) { 
+    this.deactivationAt = dateTime; 
+  }
+
   // ===== Getters =====
   public String getImageUrl() { return imageUrl; } 
   public Long getEventId() { return eventId; }
@@ -154,6 +167,9 @@ public class Event {
   public String getSpeakers() { return speakers; }
   public String getDressCode() { return dressCode; }
   public boolean getEventStatus(){ return eventStatus; }
+  public Long getDeactivatedByAdminId() { return deactivatedByAdminId; }
+  public String getDeactivationReason() { return deactivationReason; }
+  public LocalDateTime getDeactivationAt() { return deactivationAt; }
 
   // Display image: use explicit imageUrl if given, else map according to categories
   public String displayImageUrl() {

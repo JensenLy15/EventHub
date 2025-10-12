@@ -175,7 +175,9 @@ public class AdminController {
 
     // handle softdelete event function
     @PostMapping("/event/softdelete/{id}")
-    public String softDeleteEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
+    public String softDeleteEvent(@PathVariable("id") Long eventId,
+                                  @RequestParam(value = "reason", required = false) String reason,
+                                  RedirectAttributes redirectAttributes)
     {
         Event event = eventService.findById(eventId);
         if (event == null) {
@@ -183,7 +185,13 @@ public class AdminController {
             return "redirect:/admin/dashboard";
         }
 
-        eventService.softDeleteEvent(eventId);
+        String normalizedReason = (reason == null || reason.isBlank()) ? null : reason.trim();
+
+        // get current admin id 
+        Long adminId = currentUserService.getCurrentUserId();
+
+        eventService.softDeleteEvent(eventId, adminId, normalizedReason);
+
         redirectAttributes.addFlashAttribute("successMessage", "Event moved to bin");
         return "redirect:/admin/dashboard";
     }

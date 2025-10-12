@@ -42,8 +42,14 @@ CREATE TABLE events (
   speakers VARCHAR(255),
   dress_code VARCHAR(100),
   event_status BOOLEAN NOT NULL DEFAULT TRUE,
-
+  deactivated_by_admin_id BIGINT NULL,
+  deactivation_reason VARCHAR(1000) NULL,
+  deactivation_at DATETIME NULL,
   CONSTRAINT fk_event_user FOREIGN KEY (created_by_user_id)
+    REFERENCES users(user_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_event_deactivated_by FOREIGN KEY (deactivated_by_admin_id)
     REFERENCES users(user_id)
     ON DELETE SET NULL
     ON UPDATE CASCADE

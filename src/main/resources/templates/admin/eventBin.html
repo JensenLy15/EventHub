@@ -38,7 +38,26 @@
             <p class="muted" th:text="${#temporals.format(ev.dateTime, 'EEE, d MMM yyyy HH:mm')}">Date</p>
             <p class="muted" th:text="${ev.location}">Location</p>
 
-            <p th:if="${ev.description != null}" th:text="${ev.description}">Short description</p>
+              <!-- show event short description if present -->
+            <p th:text="${ev.description != null ? ev.description : ''}" th:unless="${ev.deactivationReason != null}"></p>
+
+            <!-- display deactivation info -->
+            <p>
+              <strong>Reason for removal:</strong>
+              <span th:text="${ev.deactivationReason != null ? ev.deactivationReason : 'No reason added'}">No reason added</span>
+            </p>
+
+            <p>
+              <strong>Banned by:</strong>
+              
+              <span th:text="${ev.deactivatedByAdminId != null ? 'Admin #' + ev.deactivatedByAdminId : 'Unknown'}">Unknown</span>
+            </p>
+
+            <p>
+              <strong>Banned at:</strong>
+              <span th:if="${ev.deactivationAt != null}" th:text="${#temporals.format(ev.deactivationAt, 'EEE, d MMM yyyy HH:mm')}">Date</span>
+              <span th:if="${ev.deactivationAt == null}">Unknown</span>
+            </p>
 
             <div class="card-actions">
               <form th:action="@{|/admin/event/bin/restore/${ev.eventId}|}" method="post" class="inline">
