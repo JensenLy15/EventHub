@@ -1,25 +1,15 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-  <body>
-    <th:block th:fragment="head">
-      <link rel="stylesheet" th:href="@{/styles.css}" />
-    </th:block>
-
-    <!-- PAGE HEADER fragment -->
-    <header th:fragment="header">
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="logo"><img src="/favicon.svg" alt="EventHub Logo"><a href="/" class="link">Eventhub</a></div>
-          <form class="search">
-            <input type="text" placeholder="Search" aria-label="Search" />
-            <button type="button" class="mic">🎤</button>
-          </form>
-        </div>
-        <div class="topbar-right">
-          <div sec:authorize="!isAuthenticated()">
-            <a th:href="@{/signup}" class="nav-button">Sign up</a>
-            <a th:href="@{/login}" class="nav-button">Log in</a>
-          </div>
+<header
+  th:fragment="header"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <div class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <!-- Brand -->
+        <a href="/" class="brand" aria-label="Eventhub home">
+          <img src="/favicon.svg" alt="" class="brand__logo" />
+          <span class="brand__name">EventHub</span>
+        </a>
 
         <!-- Search -->
         <form class="search" role="search" aria-label="Site search">
@@ -63,13 +53,7 @@
               >
             </div>
 
-              <div sec:authorize="hasRole('USER')" style="margin-right: 1.5rem;">
-                <a th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps'}" class="nav-button user-nav">
-                  <i class="fas fa-calendar-check"></i> MY RSVP
-                </a>
-              </div>
-          
-                          <div class="user">
+            <div class="user">
               <img src="/default-avatar.png" alt="User avatar" class="avatar" />
               <span class="user__welcome">Welcome,</span>
               <span class="user__name" sec:authentication="name"
@@ -80,7 +64,6 @@
             <form th:action="@{/logout}" method="post">
               <button type="submit" class="btn btn--danger">⏏ Logout</button>
             </form>
-
           </div>
         </nav>
       </div>
