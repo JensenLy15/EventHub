@@ -152,6 +152,7 @@ public class AdminController {
       model.addAttribute("event", event);
       model.addAttribute("categories", categoryService.getAllCategories());
       model.addAttribute("isEdit", true);
+      model.addAttribute("isAdmin", true);
 
       //Format date in order to render it to the event form
       if (event.getDateTime() != null) {
@@ -176,6 +177,7 @@ public class AdminController {
     {
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", true);
+            model.addAttribute("isAdmin", true);
             model.addAttribute("categories", categoryService.getAllCategories());
             return "eventPage";
         }
