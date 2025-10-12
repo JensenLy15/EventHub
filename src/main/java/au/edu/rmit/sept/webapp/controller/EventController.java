@@ -1,7 +1,11 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,7 @@ import au.edu.rmit.sept.webapp.service.CategoryService;
 import au.edu.rmit.sept.webapp.service.CurrentUserService;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
+import au.edu.rmit.sept.webapp.service.UserService;
 import jakarta.validation.Valid;
 
 @Controller
@@ -26,17 +31,17 @@ public class EventController {
     private final EventService eventService;
     private final CategoryService categoryService;
     private final RSVPService rsvpService;
-
+    private final UserService userService;
     private final CurrentUserService currentUserService;
 
     // constructor injection for services
-    public EventController(EventService Service, CategoryService categoryService, RSVPService rsvpService, CurrentUserService currentUserService)
+    public EventController(EventService Service, CategoryService categoryService, RSVPService rsvpService, CurrentUserService currentUserService, UserService userService)
     {
       this.eventService = Service;
       this.categoryService = categoryService;
       this.rsvpService = rsvpService;
-
       this.currentUserService = currentUserService;
+      this.userService = userService;
     }
   
   // ================= CREATE EVENT =================
@@ -213,6 +218,34 @@ public class EventController {
     {
       eventService.filterEventsByCategory(categoryId);
       return "index";
+    }
+
+    @GetMapping("/recommendations")
+    public String showRecommendations(Model model) {
+        long currentUserId = currentUserService.getCurrentUserId();
+        List<Long> preferredCategoryIds = userService.getUserPreferredCategories(currentUserId);
+        List<Event> recommendedEvents = eventService.getRecommendedEvents(preferredCategoryIds);
+
+      Map<Long, Boolean> rsvpStatusMap = new HashMap<>();
+        for (Event event : recommendedEvents) {
+            boolean hasRsvped = rsvpService.hasUserRsvped(currentUserId, event.getEventId());
+            rsvpStatusMap.put(event.getEventId(), hasRsvped);
+      }
+      // Map category ids to names
+      List<EventCategory> allCategories = categoryService.getAllCategories();
+      Map<Long, String> categoryMap = allCategories.stream()
+        .collect(Collectors.toMap(EventCategory::getCategoryId, EventCategory::getName));
+
+      List<String> preferredCategoryNames = preferredCategoryIds.stream()
+        .map(categoryMap::get)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+        model.addAttribute("recommendedEvents", recommendedEvents);
+        model.addAttribute("rsvpStatusMap", rsvpStatusMap);
+        model.addAttribute("currentUserId", currentUserService.getCurrentUserId());
+        model.addAttribute("userPreferredCategories", preferredCategoryNames);
+        return "recommendations";
     }
 
     // ================= VIEW EVENT DETAILS =================

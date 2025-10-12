@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Event Management</title>
+    <!-- <link rel="stylesheet" href="/src/main/resources/static/auth.css"> -->
+         <!-- <link rel="stylesheet" th:href="@{/styles.css}" /> -->
+
+             <link rel="stylesheet" href="/auth.css">
+     
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>Welcome Back</h1>
+            <p>Sign in to your account</p>
+        </div>
+
+       <!-- <div th:if="${param.error}" class="alert alert-error">
+            <span th:if="${param.message != null and param.message[0] != ''}" 
+                  th:text="${param.message[0]}"></span>
+            <span th:if="${param.message == null or param.message[0] == ''}">
+                Invalid email or password. Please try again.
+            </span>
+        </div> -->
+
+        <!-- <div th:if="${param.error}" class="alert alert-error">
+    <span th:text="${#lists.isEmpty(param.message) ? 
+                    'Invalid email or password. Please try again.' : 
+                    param.message[0]}"></span>
+</div> -->
+ <div th:if="${param.error}" class="alert alert-error">
+            <span th:if="${errorMessage}" th:text="${errorMessage}"></span>
+            <span th:unless="${errorMessage}">Invalid email or password. Please try again.</span>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="username">Email Address</label>
+                <input type="email" id="username" name="username" required 
+                       placeholder="you@example.com" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Enter your password" autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="submit-btn">Sign In</button>
+        </form>
+
+
+        <div class="signup-link">
+            Don't have an account? <a href="/signup">Create one now</a>
+        </div>
+
+        <div class="back-home">
+            <a href="/">← Back to home</a>
+        </div>
+    </div>
+</body>
+</html>

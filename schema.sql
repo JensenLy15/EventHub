@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS event_categories;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS reports;
 DROP TABLE IF EXISTS user_preferred_category;
 
 CREATE TABLE categories (
@@ -40,6 +41,7 @@ CREATE TABLE events (
   agenda TEXT,
   speakers VARCHAR(255),
   dress_code VARCHAR(100),
+  event_status BOOLEAN NOT NULL DEFAULT TRUE,
 
   CONSTRAINT fk_event_user FOREIGN KEY (created_by_user_id)
     REFERENCES users(user_id)
@@ -81,6 +83,25 @@ CREATE TABLE rsvp (
   CONSTRAINT uc_user_event UNIQUE (user_id, event_id)
 );
 
+CREATE TABLE reports (
+  report_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  event_id BIGINT NOT NULL,
+  note VARCHAR(1000),
+  reportStatus VARCHAR(50) NOT NULL CHECK (reportStatus IN ('open', 'under_review', 'resolved')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_report_user FOREIGN KEY (user_id)
+    REFERENCES users(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_report_event FOREIGN KEY (event_id)
+    REFERENCES events(event_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+  -- CONSTRAINT uc_report_event UNIQUE (user_id, event_id)  -- prevent duplicate report
 CREATE TABLE user_preferred_category (
   user_id BIGINT NOT NULL,
   category_id BIGINT NOT NULL,

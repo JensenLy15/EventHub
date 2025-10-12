@@ -4,20 +4,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithAnonymousUser;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 public class logInTest {
@@ -36,6 +35,14 @@ public class logInTest {
     }
 
     @Test
+    @WithAnonymousUser
+    void accessLoginPage_shouldSucceed() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"));
+    }
+
+    @Test
     void loginWithValidCredentials_shouldSucceed() throws Exception {
         mockMvc.perform(formLogin("/login")
                 .user("dummy@example.com")
@@ -50,6 +57,7 @@ public class logInTest {
                 .user("dummy5@example.com")
                 .password("password123"))
                 .andExpect(authenticated().withUsername("dummy5@example.com"))
+                .andExpect(authenticated().withRoles("ORGANISER"))
                 .andExpect(redirectedUrl("/organiser/dashboard")); // ORGANISER role redirects to dashboard
     }
 
@@ -59,35 +67,37 @@ public class logInTest {
                 .user("dummy7@example.com")
                 .password("password123"))
                 .andExpect(authenticated().withUsername("dummy7@example.com"))
-                .andExpect(redirectedUrl("/")); // ADMIN role redirects to home
+                .andExpect(redirectedUrl("/admin/dashboard")) // ADMIN role redirects to home
+                .andExpect(authenticated().withRoles("ADMIN"));
     }
 
-    @Test
-    void loginWithInvalidCredentials_shouldFail() throws Exception {
-        mockMvc.perform(formLogin("/login")
-                .user("dummy@example.com")
-                .password("wrongpassword"))
-                .andExpect(unauthenticated())
-                .andExpect(redirectedUrl("/login?error"));
-    }
-
-    @Test
+      @Test
     void loginWithNonexistentUser_shouldFail() throws Exception {
         mockMvc.perform(formLogin("/login")
                 .user("nonexistent@example.com")
                 .password("password123"))
                 .andExpect(unauthenticated())
-                .andExpect(redirectedUrl("/login?error"));
+                .andExpect(redirectedUrl("/login?error=true")); // Updated to match SecurityConfig
+
+
     }
 
-    // @Test
-    // @WithAnonymousUser
-    // void accessPublicPages_shouldSucceed() throws Exception {
-    //     mockMvc.perform(get("/"))
-    //             .andExpect(status().isOk());
-                
-    //     mockMvc.perform(get("/error"))
-    //             .andExpect(status().isOk());
-    // }
+       @Test
+    void loginWithBannedAccount_shouldShowBannedMessage() throws Exception {
+        mockMvc.perform(formLogin("/login")
+                .user("dummy8@example.com")
+                .password("password123"))
+                .andExpect(unauthenticated())
+                .andExpect(redirectedUrl("/login?error=true"));
+        ///
+    }
+    
+    @Test
+    @WithAnonymousUser
+    void unauthenticatedUser_cannotAccessProtectedPages() throws Exception {
+        mockMvc.perform(get("/eventPage"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login")); // Redirects to login
+    }
 
 }

@@ -2,10 +2,13 @@ package au.edu.rmit.sept.webapp.repository;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -66,6 +69,7 @@ public class EventRepository {
         LEFT JOIN event_categories ec ON e.event_id = ec.event_id
         LEFT JOIN categories c ON ec.category_id = c.category_id
         WHERE e.date_time >= CURRENT_TIMESTAMP
+        AND e.event_status = TRUE
         ORDER BY e.date_time ASC
         """;
     
@@ -289,6 +293,70 @@ public class EventRepository {
     jdbcTemplate.update(deleteEventSql, eventId);
   }
 
+  // soft delete an event
+  public void softDeleteEvent(Long eventId)
+  {
+
+    String sql = "UPDATE events SET event_status = FALSE WHERE event_id = ?";
+    jdbcTemplate.update(sql, eventId);
+  }
+
+  // get all the soft deleted events
+  public List<Event> getSoftDeletedEvents()
+    {
+      String sql = """
+          SELECT  e.*, c.name as category_name
+          FROM events e
+          LEFT JOIN event_categories ec ON e.event_id = ec.event_id
+          LEFT JOIN categories c ON ec.category_id = c.category_id
+          WHERE e.event_status = FALSE
+          ORDER BY e.date_time DESC
+          """;
+
+      return jdbcTemplate.query(sql, rs -> {
+        Map<Long, Event> events = new LinkedHashMap<>();
+
+        while (rs.next()) {
+            Long eventId = rs.getLong("event_id");
+            Event ev = events.get(eventId);
+
+            if (ev == null) {
+                ev = new Event(
+                    eventId,
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+                    rs.getTimestamp("date_time").toLocalDateTime(),
+                    rs.getString("location"),
+                    new ArrayList<>(), // categories init
+                    rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+                    rs.getBigDecimal("price")
+                );
+                ev.setDetailedDescription(rs.getString("detailed_description"));
+                ev.setAgenda(rs.getString("agenda"));
+                ev.setSpeakers(rs.getString("speakers"));
+                ev.setDressCode(rs.getString("dress_code"));
+                events.put(eventId, ev);
+            }
+
+            String catName = rs.getString("category_name");
+            if (catName != null) {
+                ev.getCategory().add(catName);
+            }
+        }
+
+        return new ArrayList<>(events.values());
+      });
+    }
+
+  // restore a soft deleted event
+  public void restoreEvent(Long eventId)
+  {
+
+    String sql = "UPDATE events SET event_status = TRUE WHERE event_id = ?";
+    jdbcTemplate.update(sql, eventId);
+  }
+
   // filter events by category
   public List<Event> filterEventsByCategory(Long categoryId)
   {
@@ -346,6 +414,7 @@ public class EventRepository {
                   event.setAgenda(rs.getString("agenda"));
                   event.setSpeakers(rs.getString("speakers"));
                   event.setDressCode(rs.getString("dress_code"));
+                  event.setEventStatus(rs.getBoolean("event_status"));
                   map.put(id, event);
               }
               String cat = rs.getString("category_name");
@@ -561,6 +630,49 @@ public List<Event> searchAndFilterEvents(String searchQuery, Long categoryId) {
     }
     return new ArrayList<>(map.values());
   });
+}
+
+public List<Event> getRecommendedEvents(List<Long> categoryIds){
+    if (categoryIds == null || categoryIds.isEmpty()) {
+      return List.of();
+    }
+
+    String inSql = String.join(",",Collections.nCopies(categoryIds.size(), "?"));
+
+    String sql = """
+         SELECT e.*, 
+               GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ',') AS category_names,
+               COUNT(ec.category_id) AS match_count
+        FROM events e
+        JOIN event_categories ec ON e.event_id = ec.event_id
+        JOIN categories c ON ec.category_id = c.category_id
+        WHERE ec.category_id IN (%s)
+          AND e.date_time > NOW()
+        GROUP BY e.event_id
+        ORDER BY match_count DESC, e.date_time ASC
+        """.formatted(inSql);
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Event event = new Event();
+            event.setEventId(rs.getLong("event_id"));
+            event.setName(rs.getString("name"));
+            event.setDesc(rs.getString("description")); 
+            event.setCreatedByUserId(rs.getLong("created_by_user_id"));
+            event.setDateTime(rs.getTimestamp("date_time").toLocalDateTime()); 
+            event.setLocation(rs.getString("location"));
+            event.setCapacity(rs.getInt("capacity"));
+            event.setPrice(rs.getBigDecimal("price"));
+            event.setAgenda(rs.getString("agenda"));
+            event.setDressCode(rs.getString("dress_code"));
+            event.setSpeakers(rs.getString("speakers"));
+            event.setDetailedDescription(rs.getString("detailed_description"));
+
+            String categoryStr = rs.getString("category_names");
+        if (categoryStr != null && !categoryStr.isBlank()) {
+            event.setCategory(Arrays.asList(categoryStr.split(",")));
+        }
+            return event;
+        }, categoryIds.toArray());
 }
 }
 

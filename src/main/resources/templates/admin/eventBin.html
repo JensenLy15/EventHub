@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{components/layout :: layout(~{::title}, ~{::section})}">
+  <head>
+    <title>Admin — Recycle Bin</title>
+  </head>
+  <body>
+    <section class="page">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Recycle Bin</h1>
+          <p class="muted">Soft-deleted events. Restore or permanently delete them.</p>
+          <div class="hero-cta">
+            <a th:href="@{/admin/dashboard}" class="btn btn-light">← Back to dashboard</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Empty state -->
+      <div th:if="${#lists.isEmpty(deletedEvents)}" class="empty-events">
+        No deleted events.
+      </div>
+
+      <!-- Event Cards (like admin dashboard) -->
+      <div class="cards" th:if="${!#lists.isEmpty(deletedEvents)}">
+        <article class="card" th:each="ev : ${deletedEvents}">
+          <div class="card-body">
+            <div class="title-row">
+              <h3 class="card-title" th:text="${ev.name}">Event name</h3>
+              <div class="chip-row-inline" th:if="${ev.category != null}">
+                <span class="chip" th:each="c : ${ev.category}" th:text="${c}">Category</span>
+              </div>
+            </div>
+
+            <p class="muted" th:text="${#temporals.format(ev.dateTime, 'EEE, d MMM yyyy HH:mm')}">Date</p>
+            <p class="muted" th:text="${ev.location}">Location</p>
+
+            <p th:if="${ev.description != null}" th:text="${ev.description}">Short description</p>
+
+            <div class="card-actions">
+              <form th:action="@{|/admin/event/bin/restore/${ev.eventId}|}" method="post" class="inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-blue">Restore</button>
+              </form>
+
+              <form th:action="@{|/admin/event/bin/delete/${ev.eventId}|}" method="post" class="inline"
+                    onsubmit="return confirm('Permanently delete this event? This action cannot be undone.');">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-danger">Delete Permanently</button>
+              </form>
+
+            <button
+              type="button"
+              class="btn btn-dark"
+              th:attr="data-event-id=${ev.eventId}"
+              onclick="openEventModal(this)"
+            >
+              View Details
+            </button>
+
+            <!-- Hidden modal template for THIS event (reuse component) -->
+            <template th:id="'event-template-' + ${ev.eventId}">
+              <th:block th:replace="~{components/eventDetail :: eventDetails(event=${ev})}"></th:block>
+            </template>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Global modal -->
+      <div id="eventModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEventModal()">&times;</span>
+          <div id="modal-body"></div>
+        </div>
+      </div>
+      <script>
+        function openEventModal(button) {
+          const eventId = button.getAttribute("data-event-id");
+          const template = document.getElementById("event-template-" + eventId);
+          if (!template) return;
+          document.getElementById("modal-body").innerHTML = template.innerHTML;
+          document.getElementById("eventModal").style.display = "block";
+        }
+        function closeEventModal() {
+          document.getElementById("eventModal").style.display = "none";
+        }
+        window.onclick = function (event) {
+          const modal = document.getElementById("eventModal");
+          if (event.target === modal) closeEventModal();
+        };
+      </script>
+    </section>
+  </body>
+</html>

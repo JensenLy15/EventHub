@@ -175,5 +175,45 @@ public class RSVPController {
 
         return "myRsvps"; 
     }
+
+        // submit the rsvp, will redirect to recommendation page regardless, but will have different messages depend on if it fails or successes 
+    @PostMapping("/{userId}/event/{eventId}/confirm/recommendations")
+    public String rsvpFromRecommendations(@PathVariable Long userId, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
+        try {
+            if (rsvpService.submitRSVP(userId, eventId)) { //create an rsvp
+                //get event object for event name for success message. 
+                Event event = eventService.findById(eventId); 
+                String successMsg = "You have successfully RSVP'd to " + event.getName() + "!";
+                redirectAttributes.addFlashAttribute("successMessage", successMsg);
+            }
+            else { //duplicate rsvp
+                //get event object for event name for error message. 
+                Event event = eventService.findById(eventId); 
+                String errorMsg = "Duplicate RSVP found: " + event.getName() + "!";
+                redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
+            }
+            return "redirect:/recommendations";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something wrong happened!!!");
+            return "redirect:/recommendations";
+        }
+    }
+    // delete the rsvp from recommendations page, will redirect back to recommendations page, will send a message afterwards
+    @PostMapping("/{userId}/event/{eventId}/delete/recommendations")
+    public String deleteRsvpFromRecommendations(@PathVariable Long userId,
+                                                @PathVariable Long eventId,
+                                                RedirectAttributes redirectAttributes) {
+        try {
+            rsvpService.deleteRsvp(userId, eventId); 
+            Event event = eventService.findById(eventId);
+            String successMsg = "You have successfully CANCELLED your RSVP for " + event.getName() + "!";
+            redirectAttributes.addFlashAttribute("successMessage", successMsg);
+            return "redirect:/recommendations"; 
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something went wrong while cancelling your RSVP.");
+            return "redirect:/recommendations";  
+        }
+    }
+
 }
 

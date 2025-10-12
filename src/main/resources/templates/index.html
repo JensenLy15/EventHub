@@ -36,30 +36,11 @@
         Browsing events in <span class="muted">RMIT</span>
       </h2>
 
-      <!-- Search Form -->
-      <form class="search" method="get" th:action="@{/}">
-        <input 
-          name="search"
-          th:value="${searchQuery}"
-          placeholder="Search events by their name"
-          aria-label="Search events"
-          autocomplete="off" />
-        <!-- Preserve category filter when searching -->
-        <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}" />
-        <button type="submit" class="mic">🔍</button>
-      </form>
-
-          <!-- Display search results info -->
-      <div th:if="${searchQuery != null && !searchQuery.isEmpty()}" class="search-info" style="margin: 1rem 0; color: #666;">
-        <span th:text="'Showing results for: \'' + ${searchQuery} + '\''">Search results</span>
-        <a th:href="@{/(categoryId=${selectedCategoryId})}" style="margin-left: 1rem; color: #007bff; text-decoration: none;">Clear search</a>
-      </div>
-
-
 
       <!-- Labels/filters (static placeholders for now) -->
       <div class="chip-row">
         <div th:replace="~{components/eventFilters :: filterForm}"></div>
+        <a href="/recommendations" class="btn btn-outline-dark">View Recommended Events</a>
       </div>
 
       <!-- <div class="createEventBtn">
@@ -76,6 +57,7 @@
         <article
           th:each="event : ${events}"
           class="card"
+          th:classappend="${rsvpStatusMap[event.eventId]} ? 'card-rsvped' : ''"
           th:if="${!#lists.isEmpty(events)}"
         >
           <div class="card-body">
@@ -122,7 +104,10 @@
           <div class="card-media">
             <div class="img-placeholder">
               <div class="placeholder-icon">
-                <img th:src="@{${event.imageUrl}}" alt="event image" class="event-card-image">
+                <img th:src="@{${event.displayImageUrl()}}" 
+                th:alt="${event.name + ' event image'}" 
+                class="event-card-image"
+                onerror="this.onerror=null;this.src='/meetup.jpg';">
               </div>
             </div>
           </div>  
@@ -139,6 +124,27 @@
           <!-- Hidden modal template for THIS event -->
           <template th:id="'event-template-' + ${event.eventId}">
           <th:block th:replace="~{components/eventDetail :: eventDetails(event=${event})}"></th:block>
+
+            <!-- Report section -->
+            <div class="report-section" style="margin-top: 20px;">
+              <h4>Report This Event</h4>
+              <form
+                th:action="@{'/report/' + ${currentUserId} + '/event/' + ${event.eventId}}"
+                method="post"
+                onsubmit="return confirm('Submit report for this event?')"
+              >
+                <textarea
+                  name="note"
+                  rows="3"
+                  placeholder="Describe the issue..."
+                  required
+                  style="width: 100%; resize: none;"
+                ></textarea>
+                <br /><br />
+                <button type="submit" class="btn btn-danger">Submit Report</button>
+              </form>
+            </div>
+
           </template>
 
           <!-- RSVP Buttons -->

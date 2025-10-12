@@ -272,7 +272,7 @@ void cleanUp() {
       saved.setDressCode("Business casual");
 
       List<Long> categoryIdsUpdated = categoryIdsForNames(List.of("Social"));
-      int rows = repo.updateEventWithAllExtraInfo(saved, categoryIdsUpdated); // swap categories
+      int rows = repo.updateEventWithAllExtraInfo(saved, categoryIdsUpdated);
       assertEquals(1, rows);
 
       Map<String, Object> row = loadEventRow(eventId);
@@ -287,4 +287,179 @@ void cleanUp() {
       List<Long> joinIds = categoryIdsForEvent(eventId);
       assertEquals(1, joinIds.size(), "Should have exactly one category after update");
   }
+
+  @Test
+  void softDelete_and_getSoftDeletedEvents() {
+    Event e = baseEvent("TestSoftDelete", "TestLoc", LocalDateTime.now().plusDays(3).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career", "Hackathon"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+
+    // soft delete
+    repo.softDeleteEvent(saved.getEventId());
+
+    // DB flag should be 0 (false)
+    Integer status = jdbc.queryForObject("SELECT event_status FROM events WHERE event_id = ?", Integer.class, saved.getEventId());
+    assertNotNull(status);
+    assertEquals(0, status.intValue());
+
+    // repository should return it in soft-deleted list
+    List<Event> deleted = repo.getSoftDeletedEvents();
+    assertTrue(deleted.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
+  }
+
+  @Test
+  void restoreEvent_restoresStatus_and_removesFromBin() {
+    Event e = baseEvent("TestRestore", "TestLoc", LocalDateTime.now().plusDays(4).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+
+    repo.softDeleteEvent(saved.getEventId());
+    // restore
+    repo.restoreEvent(saved.getEventId());
+
+    Integer status = jdbc.queryForObject("SELECT event_status FROM events WHERE event_id = ?", Integer.class, saved.getEventId());
+    assertNotNull(status);
+    assertEquals(1, status.intValue());
+
+    List<Event> deleted = repo.getSoftDeletedEvents();
+    assertFalse(deleted.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
+  }
+
+  @Test
+  void deleteEventbyId_removesEventAndJoinRows() {
+    Event e = baseEvent("TestPermanentDelete", "TestLoc", LocalDateTime.now().plusDays(5).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career", "Hackathon"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+
+    // should have join rows
+    assertTrue(countJoinRows(saved.getEventId()) >= 1);
+
+    repo.deleteEventbyId(saved.getEventId());
+
+    Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM events WHERE event_id = ?", Integer.class, saved.getEventId());
+    assertNotNull(count);
+    assertEquals(0, count.intValue(), "Event row should be deleted");
+
+    assertEquals(0, countJoinRows(saved.getEventId()), "Join rows should be removed");
+  }
+
+  @Test
+  void softDeleted_events_are_excluded_from_findUpcomingEventsSorted() {
+    Event e = baseEvent("TestExclude", "TestLoc", LocalDateTime.now().plusDays(6).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+
+    // soft delete and ensure it's not returned in upcoming events
+    repo.softDeleteEvent(saved.getEventId());
+    List<Event> upcoming = repo.findUpcomingEventsSorted();
+    assertFalse(upcoming.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
+  }
+
+
+  @Test
+  void deleteEventbyId_also_removes_rsvps_and_reports() {
+    Event e = baseEvent("TestCascadeDelete", "TestLoc", LocalDateTime.now().plusDays(7).withNano(0));
+    List<Long> categoryIdsCreated = categoryIdsForNames(List.of("Career"));
+    Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
+    assertNotNull(saved.getEventId());
+    Long id = saved.getEventId();
+
+    // create related rows: rsvp and report
+    Long existingUserId = jdbc.queryForObject("SELECT user_id FROM users LIMIT 1", Long.class);
+    jdbc.update("INSERT INTO rsvp (user_id, event_id) VALUES (?, ?)", existingUserId, id);
+    jdbc.update("INSERT INTO reports (user_id, event_id, note, reportStatus) VALUES (?, ?, ?, ?)", existingUserId, id, "issue", "open");
+
+    // sanity checks
+    Integer rsvpCount = jdbc.queryForObject("SELECT COUNT(*) FROM rsvp WHERE event_id = ?", Integer.class, id);
+    Integer reportCount = jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE event_id = ?", Integer.class, id);
+    assertNotNull(rsvpCount);
+    assertNotNull(reportCount);
+    assertEquals(1, rsvpCount.intValue());
+    assertEquals(1, reportCount.intValue());
+
+    // perform permanent delete
+    repo.deleteEventbyId(id);
+
+    // assert event removed
+    Integer evCount = jdbc.queryForObject("SELECT COUNT(*) FROM events WHERE event_id = ?", Integer.class, id);
+    assertNotNull(evCount);
+    assertEquals(0, evCount.intValue());
+
+    // assert join and related rows removed
+    assertEquals(0, countJoinRows(id), "Join rows should be removed");
+    Integer rsvpAfter = jdbc.queryForObject("SELECT COUNT(*) FROM rsvp WHERE event_id = ?", Integer.class, id);
+    Integer reportAfter = jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE event_id = ?", Integer.class, id);
+    assertNotNull(rsvpAfter);
+    assertNotNull(reportAfter);
+    assertEquals(0, rsvpAfter.intValue());
+    assertEquals(0, reportAfter.intValue());
+  }
+  @Test
+void getRecommendedEvents_returnsRankedAndPopulatedEvents() {
+    LocalDateTime base = LocalDateTime.now().plusDays(2).withNano(0);
+
+    Event e1 = baseEvent("Test Career Night", "Building 80", base.plusHours(1));
+    Event e2 = baseEvent("Test Hackathon", "Building 90", base.plusHours(2));
+    Event e3 = baseEvent("Test Social", "Student Lounge", base.plusHours(3));
+
+    e1.setAgenda("17:30 - Registration\n18:00 - Opening\n19:00 - Panel");
+    e1.setSpeakers("Dr. X, Prof. Y");
+    e1.setDressCode("Business Casual");
+    e1.setDetailedDescription("An inspiring evening focused on career growth.");
+    e2.setDetailedDescription("Hackathon for tech enthusiasts.");
+    e3.setDetailedDescription("Casual networking and fun.");
+
+    List<Long> catCareerHack = categoryIdsForNames(List.of("Career", "Hackathon"));
+    List<Long> catHack = categoryIdsForNames(List.of("Hackathon"));
+    List<Long> catSocial = categoryIdsForNames(List.of("Social"));
+
+    Event saved1 = repo.createEventWithAllExtraInfo(e1, catCareerHack);
+    Event saved2 = repo.createEventWithAllExtraInfo(e2, catHack);
+    Event saved3 = repo.createEventWithAllExtraInfo(e3, catSocial);
+
+    List<Long> categoryIds = categoryIdsForNames(List.of("Career", "Hackathon"));
+    List<Event> recommended = repo.getRecommendedEvents(categoryIds).stream()
+        .filter(ev -> ev.getName().startsWith("Test"))
+        .toList();
+
+    assertFalse(recommended.isEmpty(), "Expected at least one recommended event");
+    assertEquals(2, recommended.size(), "Should recommend two matching events");
+
+    assertEquals("Test Career Night", recommended.get(0).getName(), "Career Night should rank higher due to more matched categories");
+    assertEquals("Business Casual", recommended.get(0).getDressCode(), "Should load dress code correctly");
+    assertEquals("Dr. X, Prof. Y", recommended.get(0).getSpeakers(), "Should load speakers correctly");
+    assertTrue(recommended.get(0).getDetailedDescription().contains("career growth"), "Should load detailed description");
+}
+
+@Test
+void getRecommendedEvents_excludesPastEvents() {
+    LocalDateTime now = LocalDateTime.now().withNano(0);
+
+    Event past = baseEvent("Test Past Career Night", "Old Hall", now.minusDays(2));
+    Event future = baseEvent("Test Future Career Night", "New Hall", now.plusDays(2));
+
+    past.setCategory(List.of("Career"));
+    future.setCategory(List.of("Career"));
+
+    List<Long> catCareer = categoryIdsForNames(List.of("Career"));
+    repo.createEventWithAllExtraInfo(past, catCareer);
+    Event savedFuture = repo.createEventWithAllExtraInfo(future, catCareer);
+
+    List<Long> categoryIds = categoryIdsForNames(List.of("Career"));
+    List<Event> recommended = repo.getRecommendedEvents(categoryIds).stream()
+        .filter(ev -> ev.getName().startsWith("Test"))
+        .toList();
+
+    assertFalse(recommended.isEmpty(), "Expected at least one recommended event");
+    assertTrue(recommended.stream().noneMatch(e -> e.getName().contains("Past")), 
+               "Past events should not be included");
+    assertEquals("Test Future Career Night", recommended.get(0).getName(), 
+               "Only the future event should appear");
+    assertTrue(recommended.get(0).getDateTime().isAfter(now), 
+               "Returned event must be in the future");
+}
 }

@@ -38,8 +38,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             if (role.equals("ROLE_ORGANISER")) {
                 redirectUrl = "/organiser/dashboard";
                 break;
-            } else if (role.equals("ROLE_ADMIN") || role.equals("ROLE_USER")) {
-                redirectUrl = "/"; // Both ADMIN and USER go to index
+            } else if (role.equals("ROLE_ADMIN")) {
+                redirectUrl = "/admin/dashboard"; // ADMIN go to admin dashboard
+            } else if (role.equals("ROLE_USER")) {
+                redirectUrl = "/"; // USER go to index
             }
         }
         

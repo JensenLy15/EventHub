@@ -202,6 +202,26 @@
                 <button type="submit" class="btn btn-danger">Delete</button>
               </form>
             </div>
+
+            <div class="card-actions" th:if="${ev.eventStatus == false}">
+              <div class="chip-row-inline">
+                <span
+                  class="chip"
+                  style="
+                    background: gold;
+                    white-space: normal !important;
+                    word-break: break-word;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    display: inline-block;
+                  "
+                >
+                  <strong>DISABLED</strong> -
+                  Reason: Placeholder
+                </span>
+              </div>
+            </div>
+
           </div>
         </article>
       </div>
