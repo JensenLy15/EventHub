@@ -159,6 +159,11 @@ public class UserRepository {
     jdbcTemplate.update(sql,userId);
   }
 
+  public void updateUserStatus(Long userId, String newStatus)
+  {
+    String sql = "UPDATE users SET status = ? WHERE user_id = ?";
+    jdbcTemplate.update(sql, newStatus, userId);
+  }
 
   
 }

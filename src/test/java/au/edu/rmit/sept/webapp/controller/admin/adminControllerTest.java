@@ -5,22 +5,27 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 
 import au.edu.rmit.sept.webapp.admin.controller.AdminController;
+import au.edu.rmit.sept.webapp.config.BannedUserFilter;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.Report;
 import au.edu.rmit.sept.webapp.model.User;
@@ -30,6 +35,9 @@ import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
 import au.edu.rmit.sept.webapp.service.ReportService;
 import au.edu.rmit.sept.webapp.service.UserService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
 @WebMvcTest(AdminController.class)
 class AdminControllerTest {
@@ -43,12 +51,13 @@ class AdminControllerTest {
     @MockBean private CurrentUserService currentUserService;
     @MockBean private RSVPService rsvpService;
     @MockBean private CategoryService categoryService;
+    @MockBean private BannedUserFilter bannedUserFilter;
 
     private Event event1;
     private Report report1;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         event1 = new Event();
         event1.setEventId(1L);
         event1.setName("Test Event");
@@ -58,6 +67,14 @@ class AdminControllerTest {
         report1.setEventId(1L);
         report1.setUserId(2L);
         report1.setStatus("open");
+
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            ServletRequest request = invocation.getArgument(0);
+            ServletResponse response = invocation.getArgument(1);
+            chain.doFilter(request, response); // pass request through
+            return null; 
+        }).when(bannedUserFilter).doFilter(any(), any(), any());
     }
 
     @Test
@@ -116,12 +133,13 @@ class AdminControllerTest {
     @WithMockUser(username="admin", roles={"ADMIN"})
     void softDeleteEvent_MovesToBinAndRedirects() throws Exception {
         Mockito.when(eventService.findById(1L)).thenReturn(event1);
+        Mockito.when(currentUserService.getCurrentUserId()).thenReturn(7L);
 
-        mockMvc.perform(post("/admin/event/softdelete/1").with(csrf()))
+        mockMvc.perform(post("/admin/event/softdelete/1").with(csrf()).param("reason", "annoying"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/admin/dashboard"));
 
-        Mockito.verify(eventService).softDeleteEvent(1L);
+        Mockito.verify(eventService).softDeleteEvent(1L, 7L, "annoying");
     }
 
     @Test
@@ -208,6 +226,22 @@ class AdminControllerTest {
                .andExpect(status().isOk())
                .andExpect(model().attributeExists("event"))
                .andExpect(view().name("eventDetail"));
+    }
+
+    @Test
+    @WithMockUser(username="admin", roles={"ADMIN"})
+    void should_UpdateUserStatus_AndRedirect() throws Exception {
+        // Arrange
+        Long userId = 10L;
+        String newStatus = "banned";
+
+        // Act & Assert
+        mockMvc.perform(post("/admin/users/{userId}/{newStatus}", userId, newStatus).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users"));
+
+        // Verify that service was called correctly
+        verify(userService, times(1)).updateUserStatus(userId, newStatus);
     }
 
 }

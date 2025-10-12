@@ -17,13 +17,16 @@ public class SecurityConfig {
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomAuthenFailHandler customAuthenFailHandler;
+    private final BannedUserFilter bannedUserFilter;
 
     public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler,
                          CustomUserDetailsService customUserDetailsService,
-                         CustomAuthenFailHandler customAuthenFailHandler) {
+                         CustomAuthenFailHandler customAuthenFailHandler,
+                         BannedUserFilter bannedUserFilter) {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
         this.customUserDetailsService = customUserDetailsService;
         this.customAuthenFailHandler = customAuthenFailHandler;
+        this.bannedUserFilter = bannedUserFilter;
     }
 
     @Bean
@@ -35,7 +38,7 @@ public class SecurityConfig {
                         "/static/**", "/error").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/eventPage/**").authenticated()
-                .requestMatchers("/organiser/**").hasAnyRole("ORGANISER", "ADMIN")
+                .requestMatchers("/organiser/**").hasAnyRole("ORGANISER")
                 .requestMatchers("/users/**").hasRole("ADMIN")
 
                 //only admin can access admin pages
@@ -59,6 +62,8 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .userDetailsService(customUserDetailsService);
 
+            http.addFilterBefore(bannedUserFilter, 
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

@@ -1,0 +1,33 @@
+<div th:fragment="softDeleteModal" id="soft-delete-modal" class="modal" style="display:none">
+  <div class="modal-content">
+    <span class="close" onclick="closeSoftDeleteModal()">&times;</span>
+    <h2>Move event to bin</h2>
+    <p>Please provide a reason for moving this event to the bin (optional):</p>
+
+    <form id="softDeleteForm" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <textarea id="softDeleteReason" name="reason" rows="4" cols="50" placeholder="Enter reason (optional)"></textarea>
+
+      <div style="margin-top:1rem">
+        <button type="button" class="btn btn-light" onclick="closeSoftDeleteModal()">Cancel</button>
+        <button type="submit" class="btn btn-danger">Move to bin</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function openSoftDeleteModal(eventId) {
+      const form = document.getElementById('softDeleteForm');
+      form.action = '/admin/event/softdelete/' + eventId;
+      document.getElementById('soft-delete-modal').style.display = 'block';
+      document.getElementById('softDeleteReason').value = '';
+    }
+    function closeSoftDeleteModal() {
+      document.getElementById('soft-delete-modal').style.display = 'none';
+    }
+    window.addEventListener('click', function(e) {
+      const modal = document.getElementById('soft-delete-modal');
+      if (e.target === modal) closeSoftDeleteModal();
+    });
+  </script>
+</div>

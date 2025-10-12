@@ -11,6 +11,10 @@ public class Report {
     private String status; 
     private LocalDateTime createdAt;
 
+    private transient String userName;
+    private transient String userRole;
+    private transient String userEmail;
+
     public Report() {
         this.reportId = 0L;
         this.userId = 0L;
@@ -47,5 +51,14 @@ public class Report {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getUserRole() { return userRole; }
+    public void setUserRole(String userRole) { this.userRole = userRole; }
+
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
     
 }

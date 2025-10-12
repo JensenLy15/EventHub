@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -93,12 +94,28 @@ public class AdminController {
     @GetMapping("/events/{eventId}/reports")
     public String eventReports(@PathVariable Long eventId, Model model) {
         Event event = eventService.findById(eventId);
-
         List<Report> reports = reportService.getReportsByEventID(eventId);
+
         if (reports == null) {
             model.addAttribute("error", "Report not found");
             return dashboard(model);
         }
+
+        //Attaching user's info to report
+        List<User> allUsers = userService.getAllUsers();
+
+        Map<Long, User> userMap = allUsers.stream()
+            .collect(Collectors.toMap(User::getUserId, u -> u));
+
+        for (Report report : reports) {
+            User user = userMap.get(report.getUserId());
+            if (user != null) {
+                report.setUserName(user.getName());
+                report.setUserRole(user.getRole());
+                report.setUserEmail(user.getEmail());
+            }
+        }
+
         model.addAttribute("event", event);
         model.addAttribute("reports", reports);
         return "admin/adminReports";
@@ -120,6 +137,14 @@ public class AdminController {
         return "redirect:/admin/events/" + report.getEventId() + "/reports";
     }
 
+    @PostMapping("/users/{userId}/{newStatus}")
+    public String updateUserStatus(@PathVariable Long userId,
+                                    @PathVariable String newStatus,
+                                    Model model) {
+        userService.updateUserStatus(userId, newStatus);
+        return "redirect:/admin/users";
+    }
+
     @GetMapping("/event/edit/{id}")
     public String editEvent(@PathVariable("id") Long eventId, Model model)
     {
@@ -127,6 +152,7 @@ public class AdminController {
       model.addAttribute("event", event);
       model.addAttribute("categories", categoryService.getAllCategories());
       model.addAttribute("isEdit", true);
+      model.addAttribute("isAdmin", true);
 
       //Format date in order to render it to the event form
       if (event.getDateTime() != null) {
@@ -151,6 +177,7 @@ public class AdminController {
     {
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", true);
+            model.addAttribute("isAdmin", true);
             model.addAttribute("categories", categoryService.getAllCategories());
             return "eventPage";
         }
@@ -167,7 +194,9 @@ public class AdminController {
 
     // handle softdelete event function
     @PostMapping("/event/softdelete/{id}")
-    public String softDeleteEvent(@PathVariable("id") Long eventId, RedirectAttributes redirectAttributes)
+    public String softDeleteEvent(@PathVariable("id") Long eventId,
+                                  @RequestParam(value = "reason", required = false) String reason,
+                                  RedirectAttributes redirectAttributes)
     {
         Event event = eventService.findById(eventId);
         if (event == null) {
@@ -175,7 +204,13 @@ public class AdminController {
             return "redirect:/admin/dashboard";
         }
 
-        eventService.softDeleteEvent(eventId);
+        String normalizedReason = (reason == null || reason.isBlank()) ? null : reason.trim();
+
+        // get current admin id 
+        Long adminId = currentUserService.getCurrentUserId();
+
+        eventService.softDeleteEvent(eventId, adminId, normalizedReason);
+
         redirectAttributes.addFlashAttribute("successMessage", "Event moved to bin");
         return "redirect:/admin/dashboard";
     }

@@ -269,7 +269,7 @@ class ProfileControllerTest {
         List<Long> oldPreferredCategories = List.of(1L, 3L);
         when(userService.getUserPreferredCategories(userId)).thenReturn(oldPreferredCategories);
 
-        // Simulate the user selecting new categories (up to 3)
+        // Simulate the user selecting new categories (up to 5)
         List<String> newCategories = List.of("2", "3"); // Music + Sports
 
         // Perform the POST request to update profile

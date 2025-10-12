@@ -64,5 +64,9 @@ public class UserService {
     {
         userRepository.resetUserSavedPreferredCategories(userId);
     }
+
+    public void updateUserStatus(Long userId, String newStatus){ 
+        userRepository.updateUserStatus(userId, newStatus);
+    }
 }
 

@@ -2,13 +2,12 @@ package au.edu.rmit.sept.webapp.repository;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 import java.util.stream.Collectors;
-import java.util.Arrays;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -294,16 +293,15 @@ public class EventRepository {
   }
 
   // soft delete an event
-  public void softDeleteEvent(Long eventId)
-  {
-
-    String sql = "UPDATE events SET event_status = FALSE WHERE event_id = ?";
-    jdbcTemplate.update(sql, eventId);
+  public void softDeleteEvent(Long eventId, Long adminId, String reason) {
+    String sql = "UPDATE events SET event_status = false, deactivated_by_admin_id = ?, deactivation_reason = ?, deactivation_at = ? WHERE event_id = ?";
+    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+    jdbcTemplate.update(sql, adminId, reason, java.sql.Timestamp.valueOf(now), eventId);
   }
 
   // get all the soft deleted events
   public List<Event> getSoftDeletedEvents()
-    {
+  {
       String sql = """
           SELECT  e.*, c.name as category_name
           FROM events e
@@ -313,47 +311,56 @@ public class EventRepository {
           ORDER BY e.date_time DESC
           """;
 
-      return jdbcTemplate.query(sql, rs -> {
-        Map<Long, Event> events = new LinkedHashMap<>();
+    return jdbcTemplate.query(sql, rs -> {
+      Map<Long, Event> events = new LinkedHashMap<>();
 
-        while (rs.next()) {
-            Long eventId = rs.getLong("event_id");
-            Event ev = events.get(eventId);
+      while (rs.next()) {
+          Long eventId = rs.getLong("event_id");
+          Event ev = events.get(eventId);
 
-            if (ev == null) {
-                ev = new Event(
-                    eventId,
-                    rs.getString("name"),
-                    rs.getString("description"),
-                    rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
-                    rs.getTimestamp("date_time").toLocalDateTime(),
-                    rs.getString("location"),
-                    new ArrayList<>(), // categories init
-                    rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
-                    rs.getBigDecimal("price")
-                );
-                ev.setDetailedDescription(rs.getString("detailed_description"));
-                ev.setAgenda(rs.getString("agenda"));
-                ev.setSpeakers(rs.getString("speakers"));
-                ev.setDressCode(rs.getString("dress_code"));
-                events.put(eventId, ev);
-            }
+          if (ev == null) {
+              ev = new Event(
+                  eventId,
+                  rs.getString("name"),
+                  rs.getString("description"),
+                  rs.getObject("created_by_user_id") != null ? rs.getLong("created_by_user_id") : null,
+                  rs.getTimestamp("date_time").toLocalDateTime(),
+                  rs.getString("location"),
+                  new ArrayList<>(), // categories init
+                  rs.getObject("capacity") != null ? rs.getInt("capacity") : null,
+                  rs.getBigDecimal("price")
+              );
+              ev.setDetailedDescription(rs.getString("detailed_description"));
+              ev.setAgenda(rs.getString("agenda"));
+              ev.setSpeakers(rs.getString("speakers"));
+              ev.setDressCode(rs.getString("dress_code"));
 
-            String catName = rs.getString("category_name");
-            if (catName != null) {
-                ev.getCategory().add(catName);
-            }
-        }
+              // map deactivation fields
+              Object did = rs.getObject("deactivated_by_admin_id");
+              if (did != null) ev.setDeactivatedByAdminId(rs.getLong("deactivated_by_admin_id"));
+              ev.setDeactivationReason(rs.getString("deactivation_reason"));
+              java.sql.Timestamp ts = rs.getTimestamp("deactivation_at");
+              if (ts != null) ev.setDeactivationAt(ts.toLocalDateTime());
 
-        return new ArrayList<>(events.values());
-      });
-    }
+              events.put(eventId, ev);
+          }
+
+          String catName = rs.getString("category_name");
+          if (catName != null) {
+              ev.getCategory().add(catName);
+          }
+      }
+
+      return new ArrayList<>(events.values());
+    });
+  }
 
   // restore a soft deleted event
   public void restoreEvent(Long eventId)
   {
 
-    String sql = "UPDATE events SET event_status = TRUE WHERE event_id = ?";
+    // restore and clear deactivation metadata (admin id, reason, timestamp)
+    String sql = "UPDATE events SET event_status = TRUE, deactivated_by_admin_id = NULL, deactivation_reason = NULL, deactivation_at = NULL WHERE event_id = ?";
     jdbcTemplate.update(sql, eventId);
   }
 
@@ -415,6 +422,7 @@ public class EventRepository {
                   event.setSpeakers(rs.getString("speakers"));
                   event.setDressCode(rs.getString("dress_code"));
                   event.setEventStatus(rs.getBoolean("event_status"));
+                  event.setDeactivationReason(rs.getString("deactivation_reason"));
                   map.put(id, event);
               }
               String cat = rs.getString("category_name");

@@ -2,9 +2,11 @@ package au.edu.rmit.sept.webapp.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.doAnswer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,9 +18,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import au.edu.rmit.sept.webapp.config.BannedUserFilter;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.ReportService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
 @WebMvcTest(ReportController.class)
 public class reportEventTest {
@@ -32,13 +38,24 @@ public class reportEventTest {
     @MockBean
     private EventService eventService;
 
+    @MockBean
+    private BannedUserFilter bannedUserFilter;
+
     private Event mockEvent;
 
     @BeforeEach
-    void setup() {
+    void setup() throws Exception {
         mockEvent = new Event();
         mockEvent.setEventId(1L);
         mockEvent.setName("Charity Gala");
+
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            ServletRequest request = invocation.getArgument(0);
+            ServletResponse response = invocation.getArgument(1);
+            chain.doFilter(request, response); // pass request through
+            return null;
+        }).when(bannedUserFilter).doFilter(any(), any(), any());
     }
 
     @Test

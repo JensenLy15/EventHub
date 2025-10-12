@@ -1,6 +1,6 @@
 <div th:fragment="eventForm">
   <form
-    th:action="@{${isEdit} ? '/event/edit/' + ${event.eventId} : '/eventForm'}"
+    th:action="@{${isEdit} ? (${isAdmin ?: false} ? '/admin/event/edit/' + ${event.eventId} : '/event/edit/' + ${event.eventId}) : '/eventForm'}"
     th:object="${event}"
     method="post"
   >
@@ -200,7 +200,7 @@
       </div>
     </div>
     <div class="saveEvent">
-      <a th:href="@{/}"> Cancel </a>
+      <a th:href="@{${isAdmin ?: false} ? '/admin/dashboard' : '/organiser/dashboard'}">Cancel</a>
       <button type="submit" th:text="${isEdit} ? 'Update' : 'Save'">
         Save
       </button>
