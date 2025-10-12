@@ -16,14 +16,6 @@
       <h1 class="section-title">
         <span>List of Users</span>
       </h1>
-      <!-- <p class="muted">
-        <span
-          th:text="${#temporals.format(event.dateTime, 'EEE, d MMM yyyy HH:mm')}"
-          >Date</span
-        >
-        ·
-        <span th:text="${event.location}">Location</span>
-      </p> -->
 
       <div th:if="${#lists.isEmpty(users)}" class="empty-events">
         No User yet.
@@ -48,6 +40,18 @@
               <td th:text="${u.email}">Email</td>
               <td th:text="${u.role}">Role</td>
               <td th:text="${u.status}">Status</td>
+              <td>
+                <div th:if="${u.role} != 'admin'">
+                  <div style="display:flex;">
+                    <form th:action="@{|/admin/users/${u.userId}/banned|}" method="post" th:if="${u.status} != 'banned'">
+                      <button type="submit" class="btn btn-danger">Ban</button>
+                    </form>
+                    <form th:action="@{|/admin/users/${u.userId}/active|}" method="post" th:if="${u.status} != 'active'">
+                      <button type="submit" class="btn btn-blue">Re-Activate</button>
+                    </form>
+                  </div>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

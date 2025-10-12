@@ -120,6 +120,14 @@ public class AdminController {
         return "redirect:/admin/events/" + report.getEventId() + "/reports";
     }
 
+    @PostMapping("/users/{userId}/{newStatus}")
+    public String updateUserStatus(@PathVariable Long userId,
+                                    @PathVariable String newStatus,
+                                    Model model) {
+        userService.updateUserStatus(userId, newStatus);
+        return "redirect:/admin/users";
+    }
+
     @GetMapping("/event/edit/{id}")
     public String editEvent(@PathVariable("id") Long eventId, Model model)
     {
