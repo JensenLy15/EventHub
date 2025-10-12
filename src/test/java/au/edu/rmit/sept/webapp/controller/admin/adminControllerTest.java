@@ -118,12 +118,13 @@ class AdminControllerTest {
     @WithMockUser(username="admin", roles={"ADMIN"})
     void softDeleteEvent_MovesToBinAndRedirects() throws Exception {
         Mockito.when(eventService.findById(1L)).thenReturn(event1);
+        Mockito.when(currentUserService.getCurrentUserId()).thenReturn(7L);
 
-        mockMvc.perform(post("/admin/event/softdelete/1").with(csrf()))
+        mockMvc.perform(post("/admin/event/softdelete/1").with(csrf()).param("reason", "annoying"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/admin/dashboard"));
 
-        Mockito.verify(eventService).softDeleteEvent(1L);
+        Mockito.verify(eventService).softDeleteEvent(1L, 7L, "annoying");
     }
 
     @Test

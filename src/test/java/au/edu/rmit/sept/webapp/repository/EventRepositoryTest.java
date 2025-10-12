@@ -296,14 +296,19 @@ void cleanUp() {
     assertNotNull(saved.getEventId());
 
     // soft delete
-    repo.softDeleteEvent(saved.getEventId());
+    repo.softDeleteEvent(saved.getEventId(), 7L, "annoying");
 
     // DB flag should be 0 (false)
     Integer status = jdbc.queryForObject("SELECT event_status FROM events WHERE event_id = ?", Integer.class, saved.getEventId());
     assertNotNull(status);
     assertEquals(0, status.intValue());
 
-    // repository should return it in soft-deleted list
+    // deactivation metadata should be persisted
+    Map<String, Object> row = loadEventRow(saved.getEventId());
+    assertEquals(7L, ((Number)row.get("deactivated_by_admin_id")).longValue());
+    assertEquals("annoying", row.get("deactivation_reason"));
+    assertNotNull(row.get("deactivation_at"));
+
     List<Event> deleted = repo.getSoftDeletedEvents();
     assertTrue(deleted.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
   }
@@ -315,7 +320,7 @@ void cleanUp() {
     Event saved = repo.createEventWithAllExtraInfo(e, categoryIdsCreated);
     assertNotNull(saved.getEventId());
 
-    repo.softDeleteEvent(saved.getEventId());
+    repo.softDeleteEvent(saved.getEventId(), 7L, "annoying");
     // restore
     repo.restoreEvent(saved.getEventId());
 
@@ -325,6 +330,11 @@ void cleanUp() {
 
     List<Event> deleted = repo.getSoftDeletedEvents();
     assertFalse(deleted.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
+
+    Map<String, Object> row = loadEventRow(saved.getEventId());
+    assertNull(row.get("deactivated_by_admin_id"));
+    assertNull(row.get("deactivation_reason"));
+    assertNull(row.get("deactivation_at"));
   }
 
   @Test
@@ -354,7 +364,7 @@ void cleanUp() {
     assertNotNull(saved.getEventId());
 
     // soft delete and ensure it's not returned in upcoming events
-    repo.softDeleteEvent(saved.getEventId());
+    repo.softDeleteEvent(saved.getEventId(), 7L, "annoying");
     List<Event> upcoming = repo.findUpcomingEventsSorted();
     assertFalse(upcoming.stream().anyMatch(ev -> ev.getEventId().equals(saved.getEventId())));
   }
