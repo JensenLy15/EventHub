@@ -54,4 +54,9 @@ public class RSVPService {
     public List<Event> getRsvpedEventsByUser(Long userId, String order){
         return rsvpRepository.findEventsByUserId(userId, order);
     }
+
+    // check directly from the repository if the user already RSVP'd
+    public boolean hasUserRsvped(Long userId, Long eventId) {
+    return rsvpRepository.checkUserAlreadyRsvped(userId, eventId);
+    }
 }

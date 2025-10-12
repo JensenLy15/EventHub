@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      th:href="@{/styles.css(v=${#dates.format(#dates.createNow(),'yyyyMMddHHmmss')})}"
+    />
+    <title>Recommended Events</title>
+  </head>
+  <body>
+    <header th:replace="~{components/header :: header}"></header>
+    <section class="page recommend-page">
+      <div class="recommend-header">
+        <h2>Recommended Events for You</h2>
+        <p>
+          Based on your interests, here are some picks we think you’ll enjoy.
+        </p>
+      </div>
+
+      <div
+        class="recommend-summary"
+        th:if="${userPreferredCategories != null and !#lists.isEmpty(recommendedEvents)}"
+      >
+        <p th:if="${!#lists.isEmpty(userPreferredCategories)}">
+          These events are selected based on your preferred categories:
+          <span
+            th:text="${#strings.arrayJoin(userPreferredCategories, ', ')}"
+          ></span>
+        </p>
+      </div>
+      <!-- Showing event cards-->
+      <div class="cards">
+        <!--When there are no events -->
+        <div class="empty-events" th:if="${#lists.isEmpty(recommendedEvents)}">
+          No recommended events found. Please adjust your category preference in
+          <a
+            th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps?tab=profile'}"
+            class="link-dashboard"
+          >
+            the User Dashboard </a
+          >.
+        </div>
+
+        <article
+          th:each="event : ${recommendedEvents}"
+          class="card"
+          th:if="${!#lists.isEmpty(recommendedEvents)}"
+        >
+          <div class="card-body">
+            <h3 class="card-title" th:text="${event.name}">Event</h3>
+            <div class="card-price">
+              <span
+                th:text="${event.price != null && event.price > 0 ? '$' + #numbers.formatDecimal(event.price , 1, 'COMMA', 2, 'POINT') : 'Free'}"
+                >Free</span
+              >
+            </div>
+            <p
+              class="card-text"
+              th:text="${event.description != null ? event.description : 'Event description goes here...'}"
+            >
+              Body text.
+            </p>
+
+            <!-- Event Categories -->
+            <div
+              class="card-categories"
+              th:if="${!#lists.isEmpty(event.category)}"
+            >
+              <span
+                th:each="catName : ${event.category}"
+                class="chip"
+                th:text="${catName}"
+                >Category</span
+              >
+            </div>
+
+            <div class="card-actions"></div>
+          </div>
+
+          <!-- Event Details -->
+          <div class="card-meta">
+            <span class="meta-item"
+              >📅
+              <span th:text="${#temporals.format(event.dateTime, 'MMM d')}"
+                >Date</span
+              ></span
+            >
+            <span class="meta-item"
+              >📍 <span th:text="${event.location}">Location</span></span
+            >
+          </div>
+          <div class="card-media">
+            <div class="img-placeholder">
+              <div class="placeholder-icon">
+                <img
+                  th:src="${event.imageUrl}"
+                  alt="event image"
+                  class="event-card-image"
+                />
+              </div>
+            </div>
+          </div>
+          <!-- View Details button -->
+          <button
+            type="button"
+            class="btn btn-dark"
+            th:attr="data-event-id=${event.eventId}"
+            onclick="openEventModal(this)"
+          >
+            View Details
+          </button>
+
+          <!-- Hidden modal template for THIS event -->
+          <template th:id="'event-template-' + ${event.eventId}">
+            <th:block
+              th:replace="~{components/eventDetail :: eventDetails(event=${event})}"
+            ></th:block>
+          </template>
+
+          <!-- RSVP Buttons -->
+          <form
+            th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId}  + '/confirm/recommendations'}"
+            method="post"
+            class="rsvp-form"
+          >
+            <button
+              type="submit"
+              style="width: 100%"
+              th:classappend="${rsvpStatusMap != null and rsvpStatusMap[event.eventId]} ? 'btn btn-green submit-button' : 'btn btn-dark submit-button'"
+              th:disabled="${rsvpStatusMap != null and rsvpStatusMap[event.eventId]}"
+              th:text="${rsvpStatusMap != null and rsvpStatusMap[event.eventId]} ? 'RSVPed' : 'RSVP'"
+            >
+              RSVP
+            </button>
+          </form>
+          <div
+            th:if="${rsvpStatusMap != null and rsvpStatusMap[event.eventId]}"
+          >
+            <form
+              th:action="@{'/rsvp/' + ${currentUserId} + '/event/' + ${event.eventId} + '/delete/recommendations'}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to DELETE this RSVP ?');"
+            >
+              <button
+                type="submit"
+                style="width: 100%"
+                class="btn submit-button"
+                th:text="'Cancel this RSVP'"
+              >
+                Cancel this RSVP
+              </button>
+            </form>
+          </div>
+        </article>
+      </div>
+      <section class="testimonials">
+        <h3>What Students Are Saying</h3>
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <p class="quote">
+              "I discovered so many amazing events I wouldn’t have known about.
+              The recommendations are spot on!"
+            </p>
+            <div class="author">— Sarah L., Software Engineering Student</div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="quote">
+              "The RSVP system is so smooth, and I love how it matches events
+              with my interests."
+            </p>
+            <div class="author">— Daniel T., RMIT Hackathon Enthusiast</div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="quote">
+              "EventHub helped me connect with my club community. It’s like
+              having a personal campus guide."
+            </p>
+            <div class="author">— Mia K., Business Club Member</div>
+          </div>
+        </div>
+      </section>
+      <a th:href="@{/}" class="btn btn-light">Back to Home</a>
+      <footer th:replace="~{components/footer :: footer}"></footer>
+      <div id="eventModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeEventModal()">&times;</span>
+          <div id="modal-body"></div>
+        </div>
+      </div>
+      <script>
+        function openEventModal(button) {
+          const eventId = button.getAttribute("data-event-id");
+          const template = document.getElementById("event-template-" + eventId);
+          if (!template) return;
+          document.getElementById("modal-body").innerHTML = template.innerHTML;
+          document.getElementById("eventModal").style.display = "block";
+        }
+        function closeEventModal() {
+          document.getElementById("eventModal").style.display = "none";
+        }
+        window.onclick = function (event) {
+          const modal = document.getElementById("eventModal");
+          if (event.target === modal) closeEventModal();
+        };
+      </script>
+    </section>
+  </body>
+</html>
