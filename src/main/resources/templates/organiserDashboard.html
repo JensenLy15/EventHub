@@ -216,8 +216,8 @@
                     display: inline-block;
                   "
                 >
-                  <strong>DISABLED</strong> -
-                  Reason: Placeholder
+                  <strong>DISABLED</strong> - Reason: 
+                  <span th:text="${ev.deactivationReason ?: 'Contact Admin Team for more details'}">Reason</span>
                 </span>
               </div>
             </div>

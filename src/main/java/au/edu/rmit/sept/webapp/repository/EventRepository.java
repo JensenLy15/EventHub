@@ -2,13 +2,12 @@ package au.edu.rmit.sept.webapp.repository;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 import java.util.stream.Collectors;
-import java.util.Arrays;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -295,7 +294,7 @@ public class EventRepository {
 
   // soft delete an event
   public void softDeleteEvent(Long eventId, Long adminId, String reason) {
-    String sql = "UPDATE events SET event_status = FALSE, deactivated_by_admin_id = ?, deactivation_reason = ?, deactivation_at = ? WHERE event_id = ?";
+    String sql = "UPDATE events SET event_status = false, deactivated_by_admin_id = ?, deactivation_reason = ?, deactivation_at = ? WHERE event_id = ?";
     java.time.LocalDateTime now = java.time.LocalDateTime.now();
     jdbcTemplate.update(sql, adminId, reason, java.sql.Timestamp.valueOf(now), eventId);
   }
@@ -423,6 +422,7 @@ public class EventRepository {
                   event.setSpeakers(rs.getString("speakers"));
                   event.setDressCode(rs.getString("dress_code"));
                   event.setEventStatus(rs.getBoolean("event_status"));
+                  event.setDeactivationReason(rs.getString("deactivation_reason"));
                   map.put(id, event);
               }
               String cat = rs.getString("category_name");
