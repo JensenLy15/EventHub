@@ -8,6 +8,7 @@
   --line: #e6e8ef;
   --chip: #f2f4f8;
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --rsvped-bg: #e6ffe6;
 }
 * {
   box-sizing: border-box;
@@ -86,7 +87,7 @@ body {
   text-decoration: underline;
 }
 
-/* Top bar */
+/* Top bar
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -114,7 +115,7 @@ body {
   margin-right: 8px;
   filter: invert(16%) sepia(89%) saturate(3063%) hue-rotate(50deg)
     brightness(95%) contrast(101%);
-}
+} */
 
 .filter-form {
   display: flex;
@@ -123,7 +124,7 @@ body {
   gap: 50px;
 }
 
-.search {
+/* .search {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -146,13 +147,13 @@ body {
   background: transparent;
   cursor: pointer;
   font-size: 18px;
-}
-.topbar-right .link {
+} */
+/* .topbar-right .link {
   margin-left: 16px;
   color: var(--brand);
   text-decoration: none;
   margin-right: 20px;
-}
+} */
 
 /* Hero */
 .hero {
@@ -336,6 +337,11 @@ body {
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
+}
+
+.card-rsvped {
+  background: var(--rsvped-bg);
+  border-color: #90EE90;
 }
 
 .card:hover {
@@ -891,11 +897,71 @@ body {
   border-radius: 30px;
 }
 .nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
   background-color: #00cf0d;
-  border-radius: 30px;
-  padding: 5px;
   color: white;
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.nav-button i {
+  font-size: 16px;
+}
+
+/* User navigation button style */
+.nav-button.user-nav {
+  background-color: #f8f9fa;
+  color: #00cf0d;
+  border: 1px solid #e2e8f0;
+}
+
+.nav-button.user-nav:hover {
+  background-color: #00cf0d;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* User info section */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 16px;
+}
+
+.username {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.username i {
+  color: #00cf0d;
+}
+
+/* Logout button */
+.nav-button.logout-btn {
+  background-color: transparent;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+}
+
+.nav-button.logout-btn:hover {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  border-color: #feb2b2;
 }
 .nav-button:hover {
   background-color: #00a60b;
