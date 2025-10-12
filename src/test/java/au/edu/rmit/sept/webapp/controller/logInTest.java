@@ -14,6 +14,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 public class logInTest {
@@ -64,9 +67,8 @@ public class logInTest {
                 .user("dummy7@example.com")
                 .password("password123"))
                 .andExpect(authenticated().withUsername("dummy7@example.com"))
-                .andExpect(redirectedUrl("/admin/dashboard")); // ADMIN role redirects to home
-                .andExpect(authenticated().withRoles("ADMIN"))
-                .andExpect(redirectedUrl("/")); // ADMIN role redirects to home
+                .andExpect(redirectedUrl("/admin/dashboard")) // ADMIN role redirects to home
+                .andExpect(authenticated().withRoles("ADMIN"));
     }
 
       @Test

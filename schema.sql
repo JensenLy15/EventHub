@@ -99,6 +99,8 @@ CREATE TABLE reports (
     REFERENCES events(event_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
+);
+
   -- CONSTRAINT uc_report_event UNIQUE (user_id, event_id)  -- prevent duplicate report
 CREATE TABLE user_preferred_category (
   user_id BIGINT NOT NULL,
