@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import au.edu.rmit.sept.webapp.admin.controller.AdminController;
+import au.edu.rmit.sept.webapp.config.BannedUserFilter;
 import au.edu.rmit.sept.webapp.model.Event;
 import au.edu.rmit.sept.webapp.model.Report;
 import au.edu.rmit.sept.webapp.model.User;
@@ -32,6 +35,9 @@ import au.edu.rmit.sept.webapp.service.EventService;
 import au.edu.rmit.sept.webapp.service.RSVPService;
 import au.edu.rmit.sept.webapp.service.ReportService;
 import au.edu.rmit.sept.webapp.service.UserService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
 @WebMvcTest(AdminController.class)
 class AdminControllerTest {
@@ -45,12 +51,13 @@ class AdminControllerTest {
     @MockBean private CurrentUserService currentUserService;
     @MockBean private RSVPService rsvpService;
     @MockBean private CategoryService categoryService;
+    @MockBean private BannedUserFilter bannedUserFilter;
 
     private Event event1;
     private Report report1;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         event1 = new Event();
         event1.setEventId(1L);
         event1.setName("Test Event");
@@ -60,6 +67,14 @@ class AdminControllerTest {
         report1.setEventId(1L);
         report1.setUserId(2L);
         report1.setStatus("open");
+
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            ServletRequest request = invocation.getArgument(0);
+            ServletResponse response = invocation.getArgument(1);
+            chain.doFilter(request, response); // pass request through
+            return null; 
+        }).when(bannedUserFilter).doFilter(any(), any(), any());
     }
 
     @Test
