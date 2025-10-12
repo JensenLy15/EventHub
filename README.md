@@ -67,6 +67,7 @@ Password: "password123"
 == docker compose up --build ==
 
 == Run mvn ==
+== docker compose down -v ==
 == docker compose up -d ==
 == mvn package clean ==
 
