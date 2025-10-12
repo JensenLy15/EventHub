@@ -35,7 +35,7 @@ public class SecurityConfig {
                         "/static/**", "/error").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/eventPage/**").authenticated()
-                .requestMatchers("/organiser/**").hasAnyRole("ORGANISER", "ADMIN")
+                .requestMatchers("/organiser/**").hasAnyRole("ORGANISER")
                 .requestMatchers("/users/**").hasRole("ADMIN")
 
                 //only admin can access admin pages
