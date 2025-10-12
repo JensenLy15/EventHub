@@ -98,7 +98,7 @@
           </div>
 
           <!-- User -->
-          <div sec:authorize="hasRole('USER')">
+          <div sec:authorize="hasRole('STUDENT')">
             <a th:href="@{'/rsvp/' + ${currentUserId} + '/my-rsvps'}" 
                class="btn btn--ghost"
                style="padding: 0.4rem 1rem; border: 1px solid #1b4332; border-radius: 8px; color: #1b4332; text-decoration: none;">
