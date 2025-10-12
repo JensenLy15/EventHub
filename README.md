@@ -30,13 +30,6 @@ The DoD is in the github projects board labeled as "definition of done".
 ==================== LOG-IN CREDENTIALS ===================
 below are the log-in information for student, and club organiser:
 
-======== STUDENT ROLE ========
-
-Username: "dummy@example.com"
-Password: "password123"
-
-==============================
-
 
 ======== STUDENT ROLE ========
 
@@ -47,7 +40,7 @@ Password: "password123"
 
 ========= STUDENT ROLE ======= (they are being ban so they unable to log in or rsvp)
 
-Username: "dummy9@example.com"
+Username: "dummy8@example.com"
 Password: "password123"
 
 ==============================
@@ -66,14 +59,19 @@ Username: "dummy7@example.com"
 Password: "password123"
 
 ==============================
+
 ===== Run Docker =====
 
-== docker compose down -v ==
-== docker compose up --build ==
+== ```docker compose down -v``` ==
+
+== ```docker compose up --build``` ==
 
 == Run mvn ==
-== docker compose down -v ==
-== docker compose up -d ==
-== mvn package clean ==
+
+== ```docker compose down -v``` ==
+
+== ```docker compose up -d``` ==
+
+== ```mvn package clean``` ==
 
 See [Instructions](INSTRUCTIONS.md)
