@@ -27,6 +27,12 @@ Communication tool (Teams): https://teams.microsoft.com/l/channel/19%3ApMxt98Mcv
 
 The DoD is in the github projects board labeled as "definition of done".
 
+==================== .env file ===================
+
+Please make a ".env" file and add the following content:
+MYSQL_USER=admin
+MYSQL_PASSWORD=password123
+
 ==================== LOG-IN CREDENTIALS ===================
 below are the log-in information for student, and club organiser:
 
